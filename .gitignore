@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vercel/
+
+# Playwright audit output
+test/shots/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.log
