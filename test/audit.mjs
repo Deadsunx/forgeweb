@@ -33,6 +33,17 @@ for (const vp of VIEWPORTS) {
   });
   page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
 
+  // Always stub the contact endpoint. This audit checks layout and wiring,
+  // not delivery — and without this it would send real mail when pointed at
+  // a deployed site. test/form.mjs owns the delivery cases.
+  await page.route("**/api/contact", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true }),
+    })
+  );
+
   await page.goto(URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
 
@@ -243,7 +254,7 @@ for (const vp of VIEWPORTS) {
   await page.fill("#contact-message", "Je souhaite un site vitrine pour mon restaurant à Bamako.");
   await page.getByRole("button", { name: /envoyer la demande/i }).click();
   await page.waitForTimeout(500);
-  const okVisible = await page.getByText(/Demande préparée|Message envoyé/i).isVisible().catch(() => false);
+  const okVisible = await page.getByText(/Message envoyé|Demande préparée/i).isVisible().catch(() => false);
   if (!okVisible) note(vp.name, "confirmation state did not appear after valid submit");
   await page.locator("#contact").screenshot({ path: `${OUT}/${vp.name}-contact-ok.png` });
   // Reset returns to the form
