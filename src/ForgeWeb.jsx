@@ -49,21 +49,20 @@ const C = {
 const CONTACT_EMAIL = "forgeweb.ml@gmail.com";
 
 /*
- * Form delivery. Get a free access key at https://web3forms.com — they email
- * one to you, no account needed — and paste it below. Until it is set, the
- * form falls back to opening the visitor's mail client via mailto:, so the
- * page never ships a submit button that silently does nothing.
+ * Form delivery. Posts to the serverless function in api/contact.js, which
+ * holds the mail credentials server-side. If that endpoint is missing — local
+ * `npm run dev`, or a deploy where the function is not live — the form falls
+ * back to opening the visitor's mail client, so the submit button is never a
+ * no-op. Run `npx vercel dev` to exercise the real endpoint locally.
  */
-const WEB3FORMS_ACCESS_KEY = "PASTE_YOUR_WEB3FORMS_ACCESS_KEY_HERE";
-const FORM_ENDPOINT = "https://api.web3forms.com/submit";
-const hasFormBackend = !WEB3FORMS_ACCESS_KEY.startsWith("PASTE_");
+const FORM_ENDPOINT = "/api/contact";
 
 /*
  * WhatsApp. International format, digits only — no "+", no spaces.
- * Example for Mali: "223XXXXXXXX". Left empty, the button is not rendered
- * at all rather than shipping a dead link.
+ * Left empty, the button is not rendered at all rather than shipping a
+ * dead link.
  */
-const WHATSAPP_NUMBER = "";
+const WHATSAPP_NUMBER = "22363250943";
 const WHATSAPP_MESSAGE = "Bonjour FORGEWEB, je souhaite discuter d’un projet de site web.";
 
 // Shared utility class strings. Kept as constants so spacing/focus stay
@@ -1224,9 +1223,7 @@ function Contact() {
       return;
     }
 
-    const subject = `Demande de devis — ${values.projectType}`;
-
-    if (!hasFormBackend) {
+    const openMailClient = () => {
       const body = [
         `Nom : ${values.name.trim()}`,
         `E-mail : ${values.email.trim()}`,
@@ -1236,11 +1233,10 @@ function Contact() {
         values.message.trim(),
       ].join("\n");
       window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-        subject
+        `Demande de devis — ${values.projectType}`
       )}&body=${encodeURIComponent(body)}`;
       setStatus("mailto");
-      return;
-    }
+    };
 
     setStatus("sending");
     try {
@@ -1248,20 +1244,28 @@ function Contact() {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject,
-          from_name: "Site FORGEWEB",
           name: values.name.trim(),
           email: values.email.trim(),
-          projet: values.projectType,
+          projectType: values.projectType,
           message: values.message.trim(),
+          botcheck: "",
         }),
       });
+
+      if (!mounted.current) return;
+
+      // No function deployed (local `npm run dev`, or a static-only deploy):
+      // hand off to the mail client rather than failing.
+      if (response.status === 404) {
+        openMailClient();
+        return;
+      }
+
       const data = await response.json().catch(() => ({}));
       if (!mounted.current) return;
       setStatus(response.ok && data.success ? "sent" : "error");
     } catch {
-      // Network failure, offline, or the endpoint blocked.
+      // Network failure, offline, or the request was blocked.
       if (mounted.current) setStatus("error");
     }
   }, [values, trap, status]);
