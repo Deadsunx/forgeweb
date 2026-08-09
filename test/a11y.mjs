@@ -1,7 +1,7 @@
 /** WCAG 2.1 AA audit: contrast, labels, roles, focus visibility, zoom reflow. */
 import { chromium } from "playwright";
 
-const URL = "http://localhost:5173/";
+const URL = process.env.BASE_URL || "http://localhost:5173/";
 const browser = await chromium.launch({ headless: true });
 
 const AUDIT = `(() => {

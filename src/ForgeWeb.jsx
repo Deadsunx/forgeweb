@@ -3,21 +3,22 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowUpRight,
-  Boxes,
+  CalendarClock,
   Check,
   CheckCircle2,
   ChevronDown,
   Code2,
   Database,
   Gauge,
+  Github,
   LayoutTemplate,
   LifeBuoy,
   Mail,
   Menu,
-  RefreshCw,
+  MonitorSmartphone,
   Send,
+  Share2,
   Sparkles,
-  UtensilsCrossed,
   X,
 } from "lucide-react";
 
@@ -147,28 +148,34 @@ const STACK = ["React.js", "JavaScript / TypeScript", "HTML5 & CSS3", "SQL", "Gi
 
 const PROJECTS = [
   {
-    icon: UtensilsCrossed,
-    kind: "Site vitrine",
-    title: "Restaurant — page unique",
-    tags: ["HTML5 & CSS3", "JavaScript", "Responsive"],
-    body: "Menu, horaires et bouton d’appel direct sur une seule page. Chargement allégé pour les connexions mobiles.",
-    accent: C.gold,
-  },
-  {
-    icon: Boxes,
+    icon: Share2,
     kind: "Application web",
-    title: "Gestion de stock",
-    tags: ["React.js", "TypeScript", "SQL"],
-    body: "Tableau de bord avec recherche, filtres et suivi des entrées et sorties, connecté à une base de données.",
+    title: "Strand — partage de fichiers",
+    tags: ["TypeScript", "WebRTC", "Chiffrement E2E"],
+    body: "Transfert de fichiers directement d’un navigateur à l’autre, sans passer par un serveur : aucune limite de taille et chiffrement de bout en bout.",
+    live: "https://strand-silk.vercel.app",
+    repo: "https://github.com/Deadsunx/strand",
     accent: C.mint,
   },
   {
-    icon: RefreshCw,
-    kind: "Refonte",
-    title: "Cabinet de services",
-    tags: ["React.js", "Performance", "SEO"],
-    body: "Reprise d’un site ancien : nouvelle structure, temps de chargement fortement réduit, affichage mobile repensé.",
+    icon: MonitorSmartphone,
+    kind: "Site vitrine",
+    title: "Portfolio personnel",
+    tags: ["React.js", "Vite", "Tailwind CSS"],
+    body: "Site vitrine une page, avec animations au défilement et identité visuelle sur-mesure. Pensé d’abord pour le mobile, jusqu’au grand écran.",
+    live: "https://oumar-tirera.vercel.app",
+    repo: "https://github.com/Deadsunx/portfolio",
     accent: C.gold,
+  },
+  {
+    icon: CalendarClock,
+    kind: "Données & API",
+    title: "Daily Ephemeris",
+    tags: ["API", "GitHub Actions", "Automatisation"],
+    body: "Quatre API publiques interrogées et archivées chaque jour, automatiquement. Le jeu de données s’enrichit seul, sans aucune intervention.",
+    live: "https://daily-ephemeris.vercel.app",
+    repo: "https://github.com/Deadsunx/daily-ephemeris",
+    accent: C.mint,
   },
 ];
 
@@ -890,8 +897,8 @@ function Projects() {
         <SectionHeading
           id="realisations-title"
           label="Réalisations"
-          title="Le type de projets que nous livrons"
-          intro="Voici trois exemples représentatifs du travail réalisé. Ce ne sont pas des projets clients : les références réelles sont présentées sur demande, avec l’accord des personnes concernées."
+          title="Des projets en ligne, pas des maquettes"
+          intro="Trois projets que nous avons développés et mis en ligne. Chacun est consultable et son code est public — vous pouvez vérifier le travail avant de nous confier le vôtre."
         />
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
@@ -913,8 +920,9 @@ function Projects() {
                       className="relative h-10 w-10"
                       style={{ color: project.accent }}
                     />
-                    <span className="absolute left-3 top-3 rounded-md border border-[#232A3A] bg-[#0B0E14]/80 px-2 py-1 font-mono text-[0.625rem] uppercase tracking-[0.14em] text-[#8791A6]">
-                      Exemple
+                    <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-md border border-[#232A3A] bg-[#0B0E14]/80 px-2 py-1 font-mono text-[0.625rem] uppercase tracking-[0.14em] text-[#8791A6]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#3FDDB0]" aria-hidden="true" />
+                      En ligne
                     </span>
                   </div>
 
@@ -938,6 +946,32 @@ function Projects() {
                         </li>
                       ))}
                     </ul>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-[#232A3A] pt-4">
+                      <a
+                        href={project.live}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`group inline-flex min-h-[44px] items-center gap-1.5 rounded text-sm font-semibold text-[#3FDDB0] transition-colors duration-200 hover:text-[#5CE8C1] motion-reduce:transition-none ${FOCUS}`}
+                      >
+                        Voir le site
+                        <span className="sr-only"> — {project.title}, nouvel onglet</span>
+                        <ArrowUpRight
+                          aria-hidden="true"
+                          className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
+                        />
+                      </a>
+                      <a
+                        href={project.repo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex min-h-[44px] items-center gap-1.5 rounded text-sm text-[#8791A6] transition-colors duration-200 hover:text-[#F1EFE6] motion-reduce:transition-none ${FOCUS}`}
+                      >
+                        <Github className="h-4 w-4" aria-hidden="true" />
+                        Code
+                        <span className="sr-only"> source de {project.title}, nouvel onglet</span>
+                      </a>
+                    </div>
                   </div>
                 </article>
               </Reveal>
