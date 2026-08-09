@@ -78,10 +78,18 @@ for (const vp of VIEWPORTS) {
 
   /* ---------- text clipping / container escape ---------- */
   const clipped = await page.evaluate(() => {
+    // Tailwind's sr-only clips to a 1px box on purpose — not a layout bug.
+    const srOnly = (el) => {
+      for (let n = el; n; n = n.parentElement) {
+        if (getComputedStyle(n).clip === "rect(0px, 0px, 0px, 0px)") return true;
+      }
+      return false;
+    };
     const out = [];
     const sel = "h1,h2,h3,p,li,span,a,button,label,option";
     for (const el of document.querySelectorAll(sel)) {
       if (!el.textContent.trim()) continue;
+      if (srOnly(el)) continue;
       const cs = getComputedStyle(el);
       if (cs.overflow === "hidden" || cs.overflowX === "hidden") {
         if (el.scrollWidth > el.clientWidth + 2) {
@@ -99,11 +107,19 @@ for (const vp of VIEWPORTS) {
 
   /* ---------- touch targets ---------- */
   const small = await page.evaluate(() => {
+    // sr-only controls (skip link, honeypot) are not pointer targets.
+    const srOnly = (el) => {
+      for (let n = el; n; n = n.parentElement) {
+        if (getComputedStyle(n).clip === "rect(0px, 0px, 0px, 0px)") return true;
+      }
+      return false;
+    };
     const out = [];
     for (const el of document.querySelectorAll("a, button, input, select, textarea")) {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
       if (getComputedStyle(el).visibility === "hidden") continue;
+      if (srOnly(el)) continue;
       if (r.height < 36) {
         out.push({
           tag: el.tagName.toLowerCase(),
@@ -227,7 +243,7 @@ for (const vp of VIEWPORTS) {
   await page.fill("#contact-message", "Je souhaite un site vitrine pour mon restaurant à Bamako.");
   await page.getByRole("button", { name: /envoyer la demande/i }).click();
   await page.waitForTimeout(500);
-  const okVisible = await page.getByText(/Votre demande est prête à partir/i).isVisible().catch(() => false);
+  const okVisible = await page.getByText(/Demande préparée|Message envoyé/i).isVisible().catch(() => false);
   if (!okVisible) note(vp.name, "confirmation state did not appear after valid submit");
   await page.locator("#contact").screenshot({ path: `${OUT}/${vp.name}-contact-ok.png` });
   // Reset returns to the form

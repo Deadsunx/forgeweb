@@ -13,8 +13,10 @@ import {
   Github,
   LayoutTemplate,
   LifeBuoy,
+  Loader2,
   Mail,
   Menu,
+  MessageCircle,
   MonitorSmartphone,
   Send,
   Share2,
@@ -45,6 +47,24 @@ const C = {
 };
 
 const CONTACT_EMAIL = "forgeweb.ml@gmail.com";
+
+/*
+ * Form delivery. Get a free access key at https://web3forms.com — they email
+ * one to you, no account needed — and paste it below. Until it is set, the
+ * form falls back to opening the visitor's mail client via mailto:, so the
+ * page never ships a submit button that silently does nothing.
+ */
+const WEB3FORMS_ACCESS_KEY = "PASTE_YOUR_WEB3FORMS_ACCESS_KEY_HERE";
+const FORM_ENDPOINT = "https://api.web3forms.com/submit";
+const hasFormBackend = !WEB3FORMS_ACCESS_KEY.startsWith("PASTE_");
+
+/*
+ * WhatsApp. International format, digits only — no "+", no spaces.
+ * Example for Mali: "223XXXXXXXX". Left empty, the button is not rendered
+ * at all rather than shipping a dead link.
+ */
+const WHATSAPP_NUMBER = "";
+const WHATSAPP_MESSAGE = "Bonjour FORGEWEB, je souhaite discuter d’un projet de site web.";
 
 // Shared utility class strings. Kept as constants so spacing/focus stay
 // consistent across every interactive element on the page.
@@ -1157,8 +1177,19 @@ function FieldError({ id, children }) {
 function Contact() {
   const [values, setValues] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
-  const [sent, setSent] = useState(false);
+  // "idle" | "sending" | "sent" | "mailto" | "error"
+  const [status, setStatus] = useState("idle");
+  // Honeypot: bots fill hidden fields, humans never see this one.
+  const [trap, setTrap] = useState("");
   const fieldRefs = useRef({});
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const inputClass = (hasError) =>
     `w-full rounded-[10px] border bg-[#0B0E14] px-3.5 py-3 text-[0.9375rem] text-[#F1EFE6] placeholder:text-[#7A85A0] transition-colors duration-200 motion-reduce:transition-none ${FOCUS} ${
@@ -1175,7 +1206,9 @@ function Contact() {
     });
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
+    if (status === "sending") return;
+
     const found = validate(values);
     setErrors(found);
 
@@ -1185,21 +1218,53 @@ function Contact() {
       return;
     }
 
-    const subject = `Demande de devis — ${values.projectType}`;
-    const body = [
-      `Nom : ${values.name.trim()}`,
-      `E-mail : ${values.email.trim()}`,
-      `Type de projet : ${values.projectType}`,
-      "",
-      "Message :",
-      values.message.trim(),
-    ].join("\n");
+    // Silently accept and drop anything that filled the honeypot.
+    if (trap) {
+      setStatus("sent");
+      return;
+    }
 
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
-    setSent(true);
-  }, [values]);
+    const subject = `Demande de devis — ${values.projectType}`;
+
+    if (!hasFormBackend) {
+      const body = [
+        `Nom : ${values.name.trim()}`,
+        `E-mail : ${values.email.trim()}`,
+        `Type de projet : ${values.projectType}`,
+        "",
+        "Message :",
+        values.message.trim(),
+      ].join("\n");
+      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(body)}`;
+      setStatus("mailto");
+      return;
+    }
+
+    setStatus("sending");
+    try {
+      const response = await fetch(FORM_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject,
+          from_name: "Site FORGEWEB",
+          name: values.name.trim(),
+          email: values.email.trim(),
+          projet: values.projectType,
+          message: values.message.trim(),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!mounted.current) return;
+      setStatus(response.ok && data.success ? "sent" : "error");
+    } catch {
+      // Network failure, offline, or the endpoint blocked.
+      if (mounted.current) setStatus("error");
+    }
+  }, [values, trap, status]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -1211,7 +1276,8 @@ function Contact() {
   const reset = () => {
     setValues(EMPTY_FORM);
     setErrors({});
-    setSent(false);
+    setTrap("");
+    setStatus("idle");
   };
 
   return (
@@ -1256,28 +1322,59 @@ function Contact() {
                     {CONTACT_EMAIL}
                   </a>
                 </p>
+
+                {WHATSAPP_NUMBER ? (
+                  <>
+                    <p className="mt-6 text-sm leading-[1.55] text-[#8791A6]">
+                      Vous préférez discuter de vive voix&nbsp;? Écrivez-nous sur WhatsApp, nous
+                      répondons généralement dans la journée.
+                    </p>
+                    <a
+                      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                        WHATSAPP_MESSAGE
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`mt-4 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] border border-[#232A3A] bg-[#0B0E14] px-5 py-3 text-sm font-semibold text-[#F1EFE6] transition-colors duration-200 hover:border-[#3FDDB0] hover:text-[#3FDDB0] motion-reduce:transition-none ${FOCUS}`}
+                    >
+                      <MessageCircle className="h-4 w-4 text-[#3FDDB0]" aria-hidden="true" />
+                      Écrire sur WhatsApp
+                      <span className="sr-only"> (nouvel onglet)</span>
+                    </a>
+                  </>
+                ) : null}
               </div>
 
               <div>
-                {sent ? (
+                {status === "sent" || status === "mailto" ? (
                   <div
                     className="rounded-[13px] border border-[#3FDDB0]/45 bg-[#0B0E14] p-6"
                     role="status"
                   >
                     <CheckCircle2 className="h-7 w-7 text-[#3FDDB0]" aria-hidden="true" />
                     <h3 className="mt-4 text-lg font-semibold tracking-[-0.01em] text-[#F1EFE6]">
-                      Votre demande est prête à partir
+                      {status === "sent" ? "Message envoyé" : "Demande préparée"}
                     </h3>
                     <p className="mt-3 text-[0.9375rem] leading-[1.55] text-[#8791A6]">
-                      Votre logiciel de messagerie s’est ouvert avec le message pré-rempli. Il ne
-                      reste qu’à l’envoyer. Si rien ne s’est ouvert, écrivez directement à{" "}
-                      <a
-                        href={`mailto:${CONTACT_EMAIL}`}
-                        className={`rounded font-mono text-[#F1EFE6] underline decoration-[#39445C] underline-offset-4 hover:decoration-[#3FDDB0] ${FOCUS}`}
-                      >
-                        {CONTACT_EMAIL}
-                      </a>
-                      .
+                      {status === "sent" ? (
+                        <>
+                          Merci, nous avons bien reçu votre demande. Nous revenons vers vous sous
+                          48&nbsp;heures ouvrées à l’adresse que vous avez indiquée.
+                        </>
+                      ) : (
+                        <>
+                          Votre logiciel de messagerie devrait s’ouvrir avec le message pré-rempli
+                          — il ne reste qu’à l’envoyer. S’il ne s’ouvre pas, écrivez-nous
+                          directement à{" "}
+                          <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            className={`rounded font-mono text-[#F1EFE6] underline decoration-[#39445C] underline-offset-4 hover:decoration-[#3FDDB0] ${FOCUS}`}
+                          >
+                            {CONTACT_EMAIL}
+                          </a>
+                          .
+                        </>
+                      )}
                     </p>
                     <button
                       type="button"
@@ -1403,10 +1500,67 @@ function Contact() {
                       <FieldError id="contact-message-error">{errors.message}</FieldError>
                     </div>
 
-                    <PrimaryButton onClick={handleSubmit} className="w-full">
-                      Envoyer la demande
-                      <Send className="h-4 w-4" aria-hidden="true" />
+                    {/*
+                      Honeypot. Visually hidden rather than aria-hidden: an
+                      aria-hidden field that is still focusable breaks ARIA, so
+                      screen readers get a real instruction to skip it instead.
+                      Bots fill it; people never do.
+                    */}
+                    <div className="sr-only">
+                      <label htmlFor="contact-botcheck">
+                        Laissez ce champ vide — il sert à filtrer les envois automatiques.
+                      </label>
+                      <input
+                        id="contact-botcheck"
+                        type="text"
+                        name="botcheck"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={trap}
+                        onChange={(e) => setTrap(e.target.value)}
+                      />
+                    </div>
+
+                    <PrimaryButton
+                      onClick={handleSubmit}
+                      disabled={status === "sending"}
+                      className="w-full disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {status === "sending" ? (
+                        <>
+                          Envoi en cours…
+                          <Loader2
+                            className="h-4 w-4 animate-spin motion-reduce:animate-none"
+                            aria-hidden="true"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          Envoyer la demande
+                          <Send className="h-4 w-4" aria-hidden="true" />
+                        </>
+                      )}
                     </PrimaryButton>
+
+                    {status === "error" ? (
+                      <p
+                        role="alert"
+                        className="flex items-start gap-2 rounded-[10px] border border-[#FF9B8A]/40 bg-[#0B0E14] px-3.5 py-3 text-[0.8125rem] leading-[1.5] text-[#FF9B8A]"
+                      >
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                        <span>
+                          L’envoi a échoué. Vérifiez votre connexion et réessayez, ou écrivez-nous
+                          directement à{" "}
+                          <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            className={`rounded font-mono underline decoration-[#FF9B8A]/50 underline-offset-4 hover:decoration-[#FF9B8A] ${FOCUS}`}
+                          >
+                            {CONTACT_EMAIL}
+                          </a>
+                          .
+                        </span>
+                      </p>
+                    ) : null}
                   </div>
                 )}
               </div>
