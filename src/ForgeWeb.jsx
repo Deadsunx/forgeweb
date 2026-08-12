@@ -789,29 +789,28 @@ function Reveal({ children, delay = 0, className = "", as: Tag = "div" }) {
 /* ------------------------------------------------------------------ */
 
 /**
- * The mark: an F whose uneven arms read as two indented lines of code, with
- * the hero code window's mint caret sitting after it. Decorative — the
- * wordmark beside it carries the accessible name.
+ * The mark: an anvil (forge) topped by a mint I-beam text cursor (web).
+ * Untiled here — it sits on the page's own dark background. public/favicon.svg
+ * carries the same shapes on a rounded tile so they read on light browser
+ * chrome too; keep the two in step. Decorative: the wordmark beside it carries
+ * the accessible name.
  */
 function LogoMark({ className = "" }) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false" className={className}>
-      <rect
-        x="0.75"
-        y="0.75"
-        width="30.5"
-        height="30.5"
-        rx="8"
-        fill="#121620"
-        stroke="#232A3A"
-        strokeWidth="1.5"
-      />
       <g fill="#F1EFE6">
-        <rect x="7.5" y="7.5" width="4" height="17" rx="1.2" />
-        <rect x="7.5" y="7.5" width="12" height="4" rx="1.2" />
-        <rect x="7.5" y="13.5" width="8.5" height="4" rx="1.2" />
+        <path d="M8.4 13.1 H2.8 L8.4 18.7 Z" />
+        <path d="M23.6 13.1 H29.2 L23.6 18.1 Z" />
+        <rect x="8.4" y="12.4" width="15.2" height="6.4" rx="0.7" />
+        <rect x="12.6" y="18.8" width="6.8" height="2.8" />
+        <path d="M12.6 21.6 H19.4 L22.8 24.6 H9.2 Z" />
+        <rect x="6.2" y="24.6" width="19.6" height="3.2" rx="0.7" />
       </g>
-      <rect x="21.5" y="7.5" width="3" height="17" rx="1.2" fill="#3FDDB0" />
+      <g fill="#3FDDB0">
+        <rect x="13.7" y="4.4" width="4.6" height="1.6" rx="0.5" />
+        <rect x="15.1" y="5.6" width="1.8" height="5.2" />
+        <rect x="13.7" y="10.4" width="4.6" height="1.6" rx="0.5" />
+      </g>
     </svg>
   );
 }
@@ -972,7 +971,7 @@ function Header() {
           href="#top"
           className={`-ml-1 inline-flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-md px-1 ${FOCUS}`}
         >
-          <LogoMark className="h-7 w-7 shrink-0" />
+          <LogoMark className="h-8 w-8 shrink-0" />
           {/*
             Below ~350px the header runs out of room, so the wordmark drops to
             sr-only rather than `hidden` — the mark alone carries the brand
