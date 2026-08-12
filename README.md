@@ -34,12 +34,14 @@ Toute la page vit dans un seul composant autonome :
 | `src/main.jsx` | Point d'entrée React |
 | `src/index.css` | Directives Tailwind |
 | `api/contact.js` | Fonction serverless Vercel : validation et envoi du courriel |
+| `public/favicon.svg` | Le logo (favicon et fichier réutilisable) |
 | `test/audit.mjs` | Audit Playwright : débordement, cibles tactiles, interactions |
 | `test/a11y.mjs` | Audit WCAG 2.1 AA : contraste, libellés, focus, reflow |
 | `test/deadcode.mjs` | Détection d'imports, constantes et couleurs inutilisés |
 | `test/form.mjs` | Formulaire côté navigateur : envoi, erreurs, honeypot, repli |
 | `test/api.mjs` | Fonction serverless : validation, honeypot, fuites de secrets |
 | `test/i18n.mjs` | Traduction : couverture FR/EN, `lang`, bascule du formulaire |
+| `test/header-fit.mjs` | En-tête : marge disponible et nom accessible du logo |
 
 ## Langues
 

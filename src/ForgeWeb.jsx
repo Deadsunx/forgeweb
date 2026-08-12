@@ -788,6 +788,42 @@ function Reveal({ children, delay = 0, className = "", as: Tag = "div" }) {
 /*  Small presentational pieces                                        */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The mark: an F whose uneven arms read as two indented lines of code, with
+ * the hero code window's mint caret sitting after it. Decorative — the
+ * wordmark beside it carries the accessible name.
+ */
+function LogoMark({ className = "" }) {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false" className={className}>
+      <rect
+        x="0.75"
+        y="0.75"
+        width="30.5"
+        height="30.5"
+        rx="8"
+        fill="#121620"
+        stroke="#232A3A"
+        strokeWidth="1.5"
+      />
+      <g fill="#F1EFE6">
+        <rect x="7.5" y="7.5" width="4" height="17" rx="1.2" />
+        <rect x="7.5" y="7.5" width="12" height="4" rx="1.2" />
+        <rect x="7.5" y="13.5" width="8.5" height="4" rx="1.2" />
+      </g>
+      <rect x="21.5" y="7.5" width="3" height="17" rx="1.2" fill="#3FDDB0" />
+    </svg>
+  );
+}
+
+function Wordmark({ className = "" }) {
+  return (
+    <span className={`font-mono font-bold tracking-[0.18em] text-[#F1EFE6] ${className}`}>
+      FORGE<span className="text-[#3FDDB0]">WEB</span>
+    </span>
+  );
+}
+
 function SectionLabel({ children }) {
   return (
     <p className="font-mono text-[0.6875rem] uppercase tracking-[0.2em] text-[#8791A6]">
@@ -934,9 +970,15 @@ function Header() {
       <div className={`${CONTAINER} flex h-16 items-center justify-between gap-3`}>
         <a
           href="#top"
-          className={`-ml-1 inline-flex min-h-[44px] shrink-0 items-center rounded-md px-1 font-mono text-base font-bold tracking-[0.18em] text-[#F1EFE6] ${FOCUS}`}
+          className={`-ml-1 inline-flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-md px-1 ${FOCUS}`}
         >
-          FORGE<span className="text-[#3FDDB0]">WEB</span>
+          <LogoMark className="h-7 w-7 shrink-0" />
+          {/*
+            Below ~350px the header runs out of room, so the wordmark drops to
+            sr-only rather than `hidden` — the mark alone carries the brand
+            visually, but the link keeps its accessible name.
+          */}
+          <Wordmark className="text-base max-[349px]:sr-only" />
         </a>
 
         <nav aria-label={t.mainNav} className="hidden lg:block">
@@ -2073,8 +2115,9 @@ function Footer() {
       <div className={`${CONTAINER} py-12 sm:py-16`}>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-12">
           <div>
-            <p className="font-mono text-base font-bold tracking-[0.18em] text-[#F1EFE6]">
-              FORGE<span className="text-[#3FDDB0]">WEB</span>
+            <p className="flex items-center gap-2.5">
+              <LogoMark className="h-8 w-8 shrink-0" />
+              <Wordmark className="text-base" />
             </p>
             <p className="mt-4 max-w-sm text-[0.9375rem] leading-[1.55] text-[#8791A6]">
               {t.footer.pitch}

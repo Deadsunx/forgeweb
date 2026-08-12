@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="FORGEWEB">
+  <!--
+    FORGEWEB mark. The F's arms are deliberately uneven so they read as two
+    indented lines of code; the mint bar is the caret from the site's hero
+    code window, sitting after the letter as if mid-type.
+    Pure geometry — no font dependency, so it renders identically anywhere.
+  -->
+  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="8" fill="#121620" stroke="#232A3A" stroke-width="1.5"/>
+  <g fill="#F1EFE6">
+    <rect x="7.5" y="7.5" width="4" height="17" rx="1.2"/>
+    <rect x="7.5" y="7.5" width="12" height="4" rx="1.2"/>
+    <rect x="7.5" y="13.5" width="8.5" height="4" rx="1.2"/>
+  </g>
+  <rect x="21.5" y="7.5" width="3" height="17" rx="1.2" fill="#3FDDB0"/>
+</svg>
