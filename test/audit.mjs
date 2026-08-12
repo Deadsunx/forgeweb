@@ -12,6 +12,8 @@ mkdirSync(OUT, { recursive: true });
 const VIEWPORTS = [
   { name: "375", width: 375, height: 812 },
   { name: "768", width: 768, height: 1024 },
+  // 1024 is where the inline nav appears alongside the toggle and CTA.
+  { name: "1024", width: 1024, height: 800 },
   { name: "1280", width: 1280, height: 900 },
 ];
 
@@ -46,6 +48,12 @@ for (const vp of VIEWPORTS) {
 
   await page.goto(URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
+
+  // Optionally audit the English copy: LANG=en node test/audit.mjs
+  if (process.env.LANG_CODE === "en") {
+    await page.locator(`button[lang="en"]`).click();
+    await page.waitForTimeout(400);
+  }
 
   // Reveal every scroll-triggered block before measuring.
   await page.evaluate(async () => {
@@ -188,15 +196,15 @@ for (const vp of VIEWPORTS) {
   /* ---------- interactions ---------- */
   if (vp.name === "375") {
     // Burger menu
-    const burger = page.getByRole("button", { name: /ouvrir le menu/i });
+    const burger = page.getByRole("button", { name: /ouvrir le menu|open menu/i });
     await burger.click();
     const menu = page.locator("#mobile-menu");
     if (!(await menu.isVisible())) note(vp.name, "mobile menu did not open");
-    if ((await burger.count()) && (await page.getByRole("button", { name: /fermer le menu/i }).count()) === 0)
+    if ((await burger.count()) && (await page.getByRole("button", { name: /fermer le menu|close menu/i }).count()) === 0)
       note(vp.name, "burger aria-label did not flip to 'Fermer le menu'");
     await page.screenshot({ path: `${OUT}/375-menu.png` });
     // Anchor click closes menu and navigates
-    await menu.getByRole("link", { name: "Tarifs" }).click();
+    await menu.getByRole("link", { name: /^(Tarifs|Pricing)$/ }).click();
     await page.waitForTimeout(800);
     if (await menu.isVisible()) note(vp.name, "mobile menu stayed open after anchor click");
     const y = await page.evaluate(() => window.scrollY);
@@ -229,7 +237,7 @@ for (const vp of VIEWPORTS) {
   // Contact validation
   await page.locator("#contact").scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
-  await page.getByRole("button", { name: /envoyer la demande/i }).click();
+  await page.getByRole("button", { name: /envoyer la demande|send request/i }).click();
   await page.waitForTimeout(250);
   const errCount = await page.locator("[id$='-error']").count();
   if (errCount !== 4) note(vp.name, `expected 4 validation errors on empty submit, got ${errCount}`);
@@ -240,9 +248,9 @@ for (const vp of VIEWPORTS) {
   // Partial fill -> only remaining errors
   await page.fill("#contact-name", "A");
   await page.fill("#contact-email", "pas-un-email");
-  await page.selectOption("#contact-type", "Site vitrine");
+  await page.selectOption("#contact-type", { index: 1 }); // index, not value: the labels are translated
   await page.fill("#contact-message", "court");
-  await page.getByRole("button", { name: /envoyer la demande/i }).click();
+  await page.getByRole("button", { name: /envoyer la demande|send request/i }).click();
   await page.waitForTimeout(200);
   const msgs = await page.locator("[id$='-error']").allTextContents();
   if (msgs.length !== 3) note(vp.name, `expected 3 errors for bad values, got ${msgs.length}: ${msgs.join(" | ")}`);
@@ -252,13 +260,13 @@ for (const vp of VIEWPORTS) {
   await page.fill("#contact-name", "Awa Traoré");
   await page.fill("#contact-email", "awa@exemple.com");
   await page.fill("#contact-message", "Je souhaite un site vitrine pour mon restaurant à Bamako.");
-  await page.getByRole("button", { name: /envoyer la demande/i }).click();
+  await page.getByRole("button", { name: /envoyer la demande|send request/i }).click();
   await page.waitForTimeout(500);
-  const okVisible = await page.getByText(/Message envoyé|Demande préparée/i).isVisible().catch(() => false);
+  const okVisible = await page.getByText(/Message envoyé|Demande préparée|Message sent|Request ready/i).isVisible().catch(() => false);
   if (!okVisible) note(vp.name, "confirmation state did not appear after valid submit");
   await page.locator("#contact").screenshot({ path: `${OUT}/${vp.name}-contact-ok.png` });
   // Reset returns to the form
-  await page.getByRole("button", { name: /écrire une autre demande/i }).click();
+  await page.getByRole("button", { name: /écrire une autre demande|write another request/i }).click();
   await page.waitForTimeout(250);
   const back = await page.locator("#contact-name").inputValue().catch(() => null);
   if (back !== "") note(vp.name, `reset did not clear the form (name="${back}")`);

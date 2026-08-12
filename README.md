@@ -39,6 +39,25 @@ Toute la page vit dans un seul composant autonome :
 | `test/deadcode.mjs` | Détection d'imports, constantes et couleurs inutilisés |
 | `test/form.mjs` | Formulaire côté navigateur : envoi, erreurs, honeypot, repli |
 | `test/api.mjs` | Fonction serverless : validation, honeypot, fuites de secrets |
+| `test/i18n.mjs` | Traduction : couverture FR/EN, `lang`, bascule du formulaire |
+
+## Langues
+
+Le site est bilingue français / anglais, avec un sélecteur `FR | EN` dans
+l'en-tête. Le français est la langue par défaut.
+
+Tout le texte visible vit dans l'objet `COPY` en haut de `src/ForgeWeb.jsx`,
+avec une entrée `fr` et une entrée `en` de structure identique. Les données
+non textuelles — icônes, URL, couleurs d'accent, ancres — sont gardées à part
+et associées par position dans le tableau.
+
+Pour modifier un texte, éditez les deux langues. `test/i18n.mjs` échoue si une
+chaîne française subsiste après la bascule en anglais : il cherche les
+caractères accentués et une liste de mots français sans homographe anglais.
+
+Les ancres (`#services`, `#methode`, `#realisations`, `#tarifs`) restent en
+français dans les deux langues, pour que les liens déjà partagés continuent de
+fonctionner.
 
 ## Formulaire de contact
 
@@ -82,10 +101,11 @@ node test/audit.mjs
 node test/a11y.mjs
 ```
 
-`BASE_URL` permet de viser un autre port :
+`BASE_URL` permet de viser un autre port, `LANG_CODE=en` audite la version
+anglaise :
 
 ```bash
-BASE_URL=http://localhost:5180/ node test/audit.mjs
+BASE_URL=http://localhost:5180/ LANG_CODE=en node test/audit.mjs
 ```
 
 `test/form.mjs` intercepte `/api/contact` et n'envoie jamais de courriel réel.

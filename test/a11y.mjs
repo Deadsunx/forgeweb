@@ -118,7 +118,7 @@ const AUDIT = `(() => {
   if (!document.querySelector("footer")) results.misc.push("no <footer> landmark");
   const navs = [...document.querySelectorAll("nav")].filter((n) => !n.getAttribute("aria-label"));
   if (navs.length) results.misc.push(\`\${navs.length} <nav> without aria-label\`);
-  if (document.documentElement.lang !== "fr") results.misc.push("html lang is not 'fr': " + document.documentElement.lang);
+  if (!["fr", "en"].includes(document.documentElement.lang)) results.misc.push("unexpected html lang: " + document.documentElement.lang);
 
   // --- img alt ---
   for (const img of document.querySelectorAll("img")) {
@@ -131,6 +131,13 @@ const AUDIT = `(() => {
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
 const page = await ctx.newPage();
 await page.goto(URL, { waitUntil: "networkidle" });
+
+// Audit the English copy with: LANG_CODE=en node test/a11y.mjs
+if (process.env.LANG_CODE === "en") {
+  await page.locator(`button[lang="en"]`).click();
+  await page.waitForTimeout(400);
+}
+
 await page.evaluate(async () => {
   const step = window.innerHeight * 0.6;
   for (let y = 0; y < document.body.scrollHeight; y += step) {
@@ -143,7 +150,7 @@ await page.waitForTimeout(500);
 
 // Open every FAQ panel + expose error states so those get audited too.
 await page.locator("#faq-button-1").click();
-await page.getByRole("button", { name: /envoyer la demande/i }).click();
+await page.getByRole("button", { name: /envoyer la demande|send request/i }).click();
 await page.waitForTimeout(300);
 
 const res = await page.evaluate(AUDIT);

@@ -76,10 +76,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ success: false, error: "server_misconfigured" });
   }
 
+  // Which language the visitor was reading, so you know how to reply.
+  const locale = body.locale === "en" ? "English" : "Français";
+
   const text = [
     `Nom : ${clean.name}`,
     `E-mail : ${clean.email}`,
     `Type de projet : ${clean.projectType}`,
+    `Langue du visiteur : ${locale}`,
     "",
     "Message :",
     clean.message,
