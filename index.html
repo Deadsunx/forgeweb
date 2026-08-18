@@ -5,11 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#0B0E14" />
-    <title>FORGEWEB — Développement web full-stack</title>
+
+    <title>FORGEWEB — Développement web full-stack à Bamako</title>
     <meta
       name="description"
-      content="FORGEWEB conçoit et développe des sites et applications web modernes, rapides et sur-mesure : sites vitrines, applications React, bases de données et API."
+      content="FORGEWEB conçoit et développe des sites et applications web modernes, rapides et sur-mesure : sites vitrines, applications React, bases de données et API. Devis gratuit, dès 60 000 FCFA."
     />
+
+    <!--
+      Absolute URLs are required here: crawlers and WhatsApp do not resolve
+      relative paths. If the site moves to a custom domain, update every
+      occurrence of the origin below and re-share the link to bust caches.
+    -->
+    <link rel="canonical" href="https://forgeweb-hazel.vercel.app/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FORGEWEB" />
+    <meta property="og:url" content="https://forgeweb-hazel.vercel.app/" />
+    <meta property="og:title" content="FORGEWEB — Développement web full-stack" />
+    <meta
+      property="og:description"
+      content="Sites vitrines, applications web sur-mesure, bases de données et API. Du cahier des charges à la mise en ligne. Devis gratuit, dès 60 000 FCFA."
+    />
+    <meta property="og:image" content="https://forgeweb-hazel.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="FORGEWEB — Des sites web qui travaillent pour votre activité."
+    />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FORGEWEB — Développement web full-stack" />
+    <meta
+      name="twitter:description"
+      content="Sites vitrines, applications web sur-mesure, bases de données et API. Devis gratuit, dès 60 000 FCFA."
+    />
+    <meta name="twitter:image" content="https://forgeweb-hazel.vercel.app/og-image.png" />
+
+    <!--
+      Tells Google this is a Bamako business, which is what surfaces the site
+      for searches like "développeur web Bamako". Deliberately omits a street
+      address, opening hours and any rating: those are not known, and inventing
+      structured data is worse than leaving it out.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "@id": "https://forgeweb-hazel.vercel.app/#business",
+        "name": "FORGEWEB",
+        "description": "Studio de développement web full-stack : sites vitrines, applications web sur-mesure, bases de données et API, refonte et maintenance.",
+        "url": "https://forgeweb-hazel.vercel.app/",
+        "logo": "https://forgeweb-hazel.vercel.app/favicon.svg",
+        "image": "https://forgeweb-hazel.vercel.app/og-image.png",
+        "email": "forgeweb.ml@gmail.com",
+        "telephone": "+22363250943",
+        "priceRange": "À partir de 60 000 FCFA",
+        "currenciesAccepted": "XOF",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Bamako",
+          "addressCountry": "ML"
+        },
+        "areaServed": [
+          { "@type": "Country", "name": "Mali" },
+          { "@type": "Place", "name": "Afrique de l'Ouest" }
+        ],
+        "availableLanguage": ["fr", "en"],
+        "sameAs": ["https://github.com/Deadsunx"],
+        "knowsAbout": [
+          "React.js",
+          "TypeScript",
+          "JavaScript",
+          "HTML5",
+          "CSS3",
+          "SQL",
+          "Git"
+        ],
+        "makesOffer": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Site vitrine & landing page",
+              "description": "Design responsive en HTML5/CSS3, pensé pour présenter une activité et convertir les visiteurs."
+            },
+            "priceCurrency": "XOF",
+            "price": "60000",
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "priceCurrency": "XOF",
+              "minPrice": "60000"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Application web sur-mesure",
+              "description": "Interfaces dynamiques et interactives développées avec React.js."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Base de données & API",
+              "description": "Connexion à des bases SQL et à des API pour des sites réellement fonctionnels."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Refonte & optimisation",
+              "description": "Modernisation de sites existants : vitesse, ergonomie et code propre."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Maintenance & suivi",
+              "description": "Corrections, mises à jour et accompagnement une fois le site en ligne."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

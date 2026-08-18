@@ -35,6 +35,7 @@ Toute la page vit dans un seul composant autonome :
 | `src/index.css` | Directives Tailwind |
 | `api/contact.js` | Fonction serverless Vercel : validation et envoi du courriel |
 | `public/favicon.svg` | Le logo (favicon et fichier réutilisable) |
+| `public/og-image.png` | Image affichée au partage du lien (WhatsApp, Facebook) |
 | `test/audit.mjs` | Audit Playwright : débordement, cibles tactiles, interactions |
 | `test/a11y.mjs` | Audit WCAG 2.1 AA : contraste, libellés, focus, reflow |
 | `test/deadcode.mjs` | Détection d'imports, constantes et couleurs inutilisés |
@@ -42,6 +43,27 @@ Toute la page vit dans un seul composant autonome :
 | `test/api.mjs` | Fonction serverless : validation, honeypot, fuites de secrets |
 | `test/i18n.mjs` | Traduction : couverture FR/EN, `lang`, bascule du formulaire |
 | `test/header-fit.mjs` | En-tête : marge disponible et nom accessible du logo |
+| `test/meta.mjs` | Open Graph, carte Twitter et données structurées JSON-LD |
+| `test/og-image.mjs` | Génère `public/og-image.png` (aperçu de partage 1200x630) |
+
+## Partage et référencement
+
+Les balises Open Graph, la carte Twitter et le bloc JSON-LD vivent dans
+`index.html`. Elles utilisent des URL **absolues** : si le site change de
+domaine, remplacez chaque occurrence de l'origine dans ce fichier.
+
+L'image de partage est générée à partir de la charte :
+
+```bash
+node test/og-image.mjs
+```
+
+Relancez-la après toute modification du logo ou du titre principal, puis
+vérifiez le tout avec `node test/meta.mjs`.
+
+Le JSON-LD décrit volontairement **ni horaires, ni note, ni adresse
+postale** : ces informations ne sont pas connues, et des données
+structurées inventées nuisent plus qu'elles n'aident.
 
 ## Langues
 
