@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertCircle,
   ArrowRight,
@@ -74,7 +75,7 @@ const FOCUS =
 const CONTAINER = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 const SECTION = "relative py-20 sm:py-24 lg:py-32";
 const CARD =
-  "rounded-[13px] border border-[#232A3A] bg-[#121620] transition-[transform,border-color] duration-200 motion-reduce:transition-none";
+  "fw-spot rounded-[13px] border border-[#232A3A] bg-[#121620] transition-[transform,border-color] duration-200 motion-reduce:transition-none";
 const CARD_HOVER = "hover:-translate-y-1 hover:border-[#39445C] motion-reduce:hover:translate-y-0";
 
 /* ------------------------------------------------------------------ */
@@ -139,6 +140,7 @@ const COPY = {
       body: "Nous concevons et développons des sites et applications web modernes, rapides et sur-mesure — du cahier des charges jusqu’à la mise en ligne.",
       primaryCta: "Demander un devis",
       secondaryCta: "Voir nos services",
+      introSkip: "Cliquez pour passer",
     },
 
     // Rendered in the hero code window. `service` and the boolean key change
@@ -415,6 +417,7 @@ const COPY = {
       body: "We design and build modern, fast, custom websites and web applications — from the brief through to launch.",
       primaryCta: "Get a quote",
       secondaryCta: "See our services",
+      introSkip: "Click to skip",
     },
 
     code: { serviceKey: "service", serviceValue: "Full-Stack Web Development", availableKey: "available" },
@@ -784,6 +787,436 @@ function Reveal({ children, delay = 0, className = "", as: Tag = "div" }) {
   );
 }
 
+function hasFinePointer() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches
+  );
+}
+
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+/**
+ * Heading text whose words rise out of a mask when the surrounding Reveal
+ * enters. Screen readers get the plain sentence; the split copy is hidden.
+ */
+function SplitWords({ text }) {
+  if (prefersReducedMotion()) return text;
+  const words = text.split(" ");
+  return (
+    <>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true" key={text}>
+        {words.map((word, i) => (
+          <React.Fragment key={i}>
+            <span className="fw-wmask">
+              <span className="fw-word-in" style={{ "--i": i }}>
+                {word}
+              </span>
+            </span>
+            {i < words.length - 1 ? " " : null}
+          </React.Fragment>
+        ))}
+      </span>
+    </>
+  );
+}
+
+/**
+ * Hero title, letter by letter: each one lands hot (amber) and cools to cream.
+ * Keyed on the text, so switching language forges the new title again.
+ */
+function ForgedTitle({ text, animate, className }) {
+  if (!animate) return <h1 className={className}>{text}</h1>;
+  const words = text.split(" ");
+  let n = 0;
+  return (
+    <h1 className={className}>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true" key={text}>
+        {words.map((word, i) => (
+          <React.Fragment key={i}>
+            <span className="fw-forge-word">
+              {[...word].map((ch, j) => (
+                <span key={j} className="fw-forge-char" style={{ "--i": n++ }}>
+                  {ch}
+                </span>
+              ))}
+            </span>
+            {i < words.length - 1 ? " " : null}
+          </React.Fragment>
+        ))}
+      </span>
+    </h1>
+  );
+}
+
+/**
+ * Embers drifting up through the hero; the cursor pushes them aside. Runs
+ * only while the hero is on screen.
+ */
+function Embers() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const mouse = { x: -1e4, y: -1e4 };
+    let w = 0;
+    let h = 0;
+    let parts = [];
+    let raf = 0;
+
+    const spawn = (anywhere) => ({
+      x: Math.random() * w,
+      y: anywhere ? Math.random() * h : h + 10,
+      r: 0.6 + Math.random() * 1.8,
+      vy: 0.25 + Math.random() * 0.75,
+      vx: 0,
+      phase: Math.random() * Math.PI * 2,
+      mint: Math.random() < 0.22,
+      a: 0.35 + Math.random() * 0.55,
+    });
+
+    const resize = () => {
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      parts = Array.from({ length: Math.min(80, Math.round(w / 18)) }, () => spawn(true));
+    };
+
+    const frame = (t) => {
+      raf = requestAnimationFrame(frame);
+      ctx.clearRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "lighter";
+      for (const p of parts) {
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 140) p.vx += (dx / (dist + 1)) * (1 - dist / 140) * 0.35;
+        p.vx *= 0.94;
+        p.x += Math.sin(t / 900 + p.phase) * 0.3 + p.vx;
+        p.y -= p.vy;
+        if (p.y < -10 || p.x < -20 || p.x > w + 20) Object.assign(p, spawn(false));
+
+        const alpha = p.a * clamp01(p.y / (h * 0.55)) * (0.75 + Math.sin(t / 120 + p.phase * 5) * 0.25);
+        ctx.fillStyle = p.mint ? `rgba(63,221,176,${alpha * 0.18})` : `rgba(232,166,62,${alpha * 0.18})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = p.mint ? `rgba(170,255,230,${alpha})` : `rgba(255,214,140,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    const onMove = (e) => {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - r.left;
+      mouse.y = e.clientY - r.top;
+    };
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+    const io = new IntersectionObserver(([entry]) => {
+      cancelAnimationFrame(raf);
+      if (entry.isIntersecting) raf = requestAnimationFrame(frame);
+    });
+    io.observe(canvas);
+    window.addEventListener("pointermove", onMove, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      io.disconnect();
+      window.removeEventListener("pointermove", onMove);
+    };
+  }, []);
+
+  return <canvas ref={ref} className="absolute inset-0 h-full w-full" />;
+}
+
+/**
+ * Hero depth on desktop: text and code window scroll at different speeds,
+ * the code window tilts toward the mouse and the background glows drift with
+ * it. Uses the independent `translate`/`scale` properties so it never fights
+ * the entrance animations, which own `transform`.
+ */
+function useHeroDepth(enabled, refs) {
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const { section, column, codeWrap, tilt, glowA, glowB } = refs;
+    const fine = hasFinePointer();
+    const target = { x: 0, y: 0 };
+    const eased = { x: 0, y: 0 };
+    let raf = 0;
+
+    const frame = () => {
+      raf = requestAnimationFrame(frame);
+      if (window.innerWidth < 1024) return;
+      eased.x += (target.x - eased.x) * 0.06;
+      eased.y += (target.y - eased.y) * 0.06;
+      const y = window.scrollY;
+      const p = clamp01(y / window.innerHeight);
+
+      column.current.style.translate = `0 ${(-y * 0.28).toFixed(1)}px`;
+      column.current.style.opacity = String(clamp01(1 - p * 1.3));
+      codeWrap.current.style.translate = `0 ${(y * 0.1).toFixed(1)}px`;
+      codeWrap.current.style.scale = String(1 - p * 0.1);
+      if (fine) {
+        tilt.current.style.transform = `perspective(1100px) rotateY(${(eased.x * 8).toFixed(2)}deg) rotateX(${(-eased.y * 6).toFixed(2)}deg)`;
+      }
+      glowA.current.style.translate = `${(eased.x * 60).toFixed(1)}px ${(eased.y * 40 + y * 0.35).toFixed(1)}px`;
+      glowB.current.style.translate = `${(-eased.x * 70).toFixed(1)}px ${(-eased.y * 40 + y * 0.2).toFixed(1)}px`;
+    };
+
+    const onMove = (e) => {
+      target.x = (e.clientX / window.innerWidth) * 2 - 1;
+      target.y = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      cancelAnimationFrame(raf);
+      if (entry.isIntersecting) raf = requestAnimationFrame(frame);
+    });
+    io.observe(section.current);
+    window.addEventListener("pointermove", onMove, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      window.removeEventListener("pointermove", onMove);
+      // Only the properties set here: the glows keep their React-owned background.
+      for (const r of [column, codeWrap, tilt, glowA, glowB]) {
+        if (!r.current) continue;
+        for (const prop of ["translate", "scale", "opacity", "transform"]) {
+          r.current.style.removeProperty(prop);
+        }
+      }
+    };
+    // Refs are stable; the effect only depends on whether motion is allowed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
+}
+
+/** CTA buttons lean toward the cursor (mouse only). Spread onto the wrapper. */
+const magnetHandlers = {
+  onPointerMove(e) {
+    if (e.pointerType !== "mouse") return;
+    const a = e.target.closest?.(".fw-magnet");
+    if (!a) return;
+    const r = a.getBoundingClientRect();
+    a.style.transition = "translate 120ms ease-out";
+    a.style.translate = `${((e.clientX - r.left - r.width / 2) * 0.25).toFixed(1)}px ${(
+      (e.clientY - r.top - r.height / 2) *
+      0.35
+    ).toFixed(1)}px`;
+  },
+  onPointerOut(e) {
+    const a = e.target.closest?.(".fw-magnet");
+    if (!a || a.contains(e.relatedTarget)) return;
+    a.style.transition = "translate 600ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+    a.style.translate = "";
+  },
+};
+
+/** Mint progress line under the header, scaled to how far down the page is. */
+function ScrollProgress() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (ref.current) ref.current.style.transform = `scaleX(${max > 0 ? clamp01(window.scrollY / max) : 0})`;
+    };
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[55] h-0.5 origin-left scale-x-0 bg-[#3FDDB0]"
+    />
+  );
+}
+
+/** Card spotlight: feeds the pointer position to the hovered .fw-spot card. */
+function trackSpotlight(e) {
+  if (e.pointerType !== "mouse") return;
+  const card = e.target.closest?.(".fw-spot");
+  if (!card) return;
+  const r = card.getBoundingClientRect();
+  card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+  card.style.setProperty("--my", `${e.clientY - r.top}px`);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Intro: the cursor strikes the anvil, sparks fly, the page opens    */
+/* ------------------------------------------------------------------ */
+
+const INTRO_KEY = "fw-intro-seen";
+
+function introSeen() {
+  try {
+    return window.sessionStorage.getItem(INTRO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function burstSparks(canvas, x, y) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineWidth = 1.6;
+
+  const colors = ["rgb(255,241,201)", "rgb(255,210,122)", C.gold, C.gold, C.mint];
+  const parts = Array.from({ length: 90 }, () => {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.25;
+    const speed = 3 + Math.random() * 10;
+    return {
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      decay: 0.012 + Math.random() * 0.025,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    };
+  });
+
+  const step = () => {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    let alive = 0;
+    for (const p of parts) {
+      if (p.life <= 0) continue;
+      alive += 1;
+      p.vy += 0.28;
+      p.vx *= 0.985;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      ctx.globalAlpha = clamp01(p.life);
+      ctx.strokeStyle = p.color;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * 2.2, p.y - p.vy * 2.2);
+      ctx.stroke();
+    }
+    if (alive) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/**
+ * Plays once per browser session. Any click, tap or key skips straight to the
+ * opening. `onOpen` fires as the halves part (start the hero entrance);
+ * `onDone` once the overlay has fully cleared.
+ */
+function ForgeIntro({ onOpen, onDone }) {
+  const { t } = useLang();
+  const [phase, setPhase] = useState(0); // 0 strike, 1 hit, 2 seam, 3 open
+  const anvilRef = useRef(null);
+  const sparksRef = useRef(null);
+  const callbacks = useRef({ onOpen, onDone });
+  callbacks.current = { onOpen, onDone };
+
+  useEffect(() => {
+    const timers = [];
+    let opened = false;
+
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      timers.forEach(window.clearTimeout);
+      try {
+        window.sessionStorage.setItem(INTRO_KEY, "1");
+      } catch {
+        // Storage blocked: the intro simply plays again next visit.
+      }
+      setPhase(2);
+      timers.push(
+        window.setTimeout(() => {
+          setPhase(3);
+          callbacks.current.onOpen();
+        }, 380),
+        window.setTimeout(() => callbacks.current.onDone(), 1500)
+      );
+    };
+
+    timers.push(
+      window.setTimeout(() => {
+        setPhase(1);
+        const r = anvilRef.current.getBoundingClientRect();
+        // The strike lands on the anvil's face, 12.4 units down its 32-unit box.
+        burstSparks(sparksRef.current, r.left + r.width / 2, r.top + r.height * (12.4 / 32));
+      }, 760),
+      window.setTimeout(open, 1650)
+    );
+    window.addEventListener("pointerdown", open);
+    window.addEventListener("keydown", open);
+
+    return () => {
+      timers.forEach(window.clearTimeout);
+      window.removeEventListener("pointerdown", open);
+      window.removeEventListener("keydown", open);
+    };
+  }, []);
+
+  // Portalled to <body>: inside <main> it would sit under the fixed header.
+  return createPortal(
+    <div
+      aria-hidden="true"
+      className={`fw-intro ${phase >= 1 ? "is-hit" : ""} ${phase >= 2 ? "is-seam" : ""} ${
+        phase >= 3 ? "is-open" : ""
+      }`}
+    >
+      <div className="fw-intro-half is-top" />
+      <div className="fw-intro-half is-bot" />
+      <div className="fw-intro-seam" />
+      <div className="fw-intro-core">
+        <div ref={anvilRef} className="fw-intro-anvil">
+          <div className="fw-intro-flash" />
+          <LogoMark className="h-full w-full overflow-visible" bodyClassName="fw-anvil-body" cursorClassName="fw-anvil-cursor" />
+        </div>
+        <div className="fw-intro-word">
+          {[..."FORGEWEB"].map((ch, i) => (
+            <span key={i} style={{ "--i": i }} className={i > 4 ? "text-[#3FDDB0]" : undefined}>
+              {ch}
+            </span>
+          ))}
+        </div>
+      </div>
+      <canvas ref={sparksRef} className="fw-intro-sparks" />
+      <p className="fw-intro-skip">{t.hero.introSkip}</p>
+    </div>,
+    document.body
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Small presentational pieces                                        */
 /* ------------------------------------------------------------------ */
@@ -795,10 +1228,10 @@ function Reveal({ children, delay = 0, className = "", as: Tag = "div" }) {
  * chrome too; keep the two in step. Decorative: the wordmark beside it carries
  * the accessible name.
  */
-function LogoMark({ className = "" }) {
+function LogoMark({ className = "", bodyClassName, cursorClassName }) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false" className={className}>
-      <g fill="#F1EFE6">
+      <g fill="#F1EFE6" className={bodyClassName}>
         <path d="M8.4 13.1 H2.8 L8.4 18.7 Z" />
         <path d="M23.6 13.1 H29.2 L23.6 18.1 Z" />
         <rect x="8.4" y="12.4" width="15.2" height="6.4" rx="0.7" />
@@ -806,7 +1239,7 @@ function LogoMark({ className = "" }) {
         <path d="M12.6 21.6 H19.4 L22.8 24.6 H9.2 Z" />
         <rect x="6.2" y="24.6" width="19.6" height="3.2" rx="0.7" />
       </g>
-      <g fill="#3FDDB0">
+      <g fill="#3FDDB0" className={cursorClassName}>
         <rect x="13.7" y="4.4" width="4.6" height="1.6" rx="0.5" />
         <rect x="15.1" y="5.6" width="1.8" height="5.2" />
         <rect x="13.7" y="10.4" width="4.6" height="1.6" rx="0.5" />
@@ -841,7 +1274,7 @@ function SectionHeading({ label, title, intro, id, align = "left" }) {
           id={id}
           className="mt-4 text-3xl font-bold tracking-[-0.03em] text-[#F1EFE6] sm:text-4xl lg:text-[2.875rem] lg:leading-[1.08]"
         >
-          {title}
+          <SplitWords text={title} />
         </h2>
         {intro ? (
           <p className="mt-5 text-[0.9375rem] leading-[1.55] text-[#8791A6] sm:text-base">{intro}</p>
@@ -855,7 +1288,7 @@ function PrimaryButton({ children, className = "", ...rest }) {
   return (
     <button
       type="button"
-      className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-[#3FDDB0] px-5 py-3 text-sm font-semibold text-[#0B0E14] transition-colors duration-200 hover:bg-[#5CE8C1] motion-reduce:transition-none ${FOCUS} ${className}`}
+      className={`fw-shine inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-[#3FDDB0] px-5 py-3 text-sm font-semibold text-[#0B0E14] transition-colors duration-200 hover:bg-[#5CE8C1] motion-reduce:transition-none ${FOCUS} ${className}`}
       {...rest}
     >
       {children}
@@ -866,7 +1299,7 @@ function PrimaryButton({ children, className = "", ...rest }) {
 function PrimaryLink({ children, className = "", ...rest }) {
   return (
     <a
-      className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-[#3FDDB0] px-5 py-3 text-center text-sm font-semibold text-[#0B0E14] transition-colors duration-200 hover:bg-[#5CE8C1] motion-reduce:transition-none ${FOCUS} ${className}`}
+      className={`fw-shine inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] bg-[#3FDDB0] px-5 py-3 text-center text-sm font-semibold text-[#0B0E14] transition-colors duration-200 hover:bg-[#5CE8C1] motion-reduce:transition-none ${FOCUS} ${className}`}
       {...rest}
     >
       {children}
@@ -1055,7 +1488,11 @@ function Header() {
 /*  Hero                                                               */
 /* ------------------------------------------------------------------ */
 
-function CodeWindow() {
+/**
+ * `start` holds the typing back (the intro is still covering the hero);
+ * `delay` waits for the window's own entrance before the first keystroke.
+ */
+function CodeWindow({ start = true, delay = 0 }) {
   const { lang, t } = useLang();
   const code = useMemo(() => buildCode(t), [t]);
   const [typed, setTyped] = useState(() => (prefersReducedMotion() ? code.length : 0));
@@ -1073,20 +1510,26 @@ function CodeWindow() {
   }, [lang, code.length]);
 
   useEffect(() => {
-    if (typed >= code.length) return undefined;
-    const id = window.setInterval(() => {
-      setTyped((prev) => {
-        if (prev >= code.length) {
-          window.clearInterval(id);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 22);
-    return () => window.clearInterval(id);
-    // Starts once; the interval clears itself when the text is complete.
+    if (!start || typed >= code.length) return undefined;
+    let id;
+    const wait = window.setTimeout(() => {
+      id = window.setInterval(() => {
+        setTyped((prev) => {
+          if (prev >= code.length) {
+            window.clearInterval(id);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 22);
+    }, delay);
+    return () => {
+      window.clearTimeout(wait);
+      window.clearInterval(id);
+    };
+    // Starts once `start` is set; the interval clears itself when the text is complete.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [start]);
 
   const done = typed >= code.length;
   const activeLine = useMemo(() => {
@@ -1150,29 +1593,62 @@ function CodeWindow() {
   );
 }
 
+/**
+ * The hero is the one cinematic moment on the page. Stages:
+ *   "intro"  — first visit this session: ForgeIntro covers the hero
+ *   "enter"  — the hero plays its entrance (badge, forged title, code window…)
+ *   "static" — reduced motion: everything is simply there
+ */
+function initialHeroStage() {
+  if (prefersReducedMotion()) return "static";
+  return introSeen() ? "enter" : "intro";
+}
+
 function Hero() {
   const { t } = useLang();
+  const [stage, setStage] = useState(initialHeroStage);
+  const [showIntro, setShowIntro] = useState(stage === "intro");
+  const animate = stage !== "static";
+
+  const refs = {
+    section: useRef(null),
+    column: useRef(null),
+    codeWrap: useRef(null),
+    tilt: useRef(null),
+    glowA: useRef(null),
+    glowB: useRef(null),
+  };
+  useHeroDepth(animate, refs);
 
   return (
     <section
+      ref={refs.section}
       id="top"
-      className="relative flex min-h-[100svh] items-center overflow-hidden pb-20 pt-28 sm:pb-24 sm:pt-32 lg:pb-24 lg:pt-28"
+      data-stage={stage}
+      className="fw-hero relative flex min-h-[100svh] items-center overflow-hidden pb-20 pt-28 sm:pb-24 sm:pt-32 lg:pb-24 lg:pt-28"
     >
+      {showIntro ? (
+        <ForgeIntro onOpen={() => setStage("enter")} onDone={() => setShowIntro(false)} />
+      ) : null}
+
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div
+          ref={refs.glowA}
           className="absolute -top-40 left-[-15%] h-[520px] w-[520px] rounded-full opacity-70 blur-[110px]"
           style={{ background: "radial-gradient(circle, rgba(232,166,62,0.16), transparent 68%)" }}
         />
         <div
+          ref={refs.glowB}
           className="absolute -top-24 right-[-20%] h-[560px] w-[560px] rounded-full opacity-70 blur-[120px]"
           style={{ background: "radial-gradient(circle, rgba(63,221,176,0.14), transparent 68%)" }}
         />
+        {animate ? <Embers /> : null}
       </div>
 
       <div className={`${CONTAINER} w-full`}>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
-          <div>
-            <Reveal>
+          <div ref={refs.column}>
+            <div className="fw-h fw-h-down">
               <p className="inline-flex items-center gap-2.5 rounded-full border border-[#232A3A] bg-[#121620] px-3.5 py-2">
                 <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
                   <span className="fw-ping absolute inline-flex h-full w-full rounded-full bg-[#3FDDB0] opacity-70" />
@@ -1182,40 +1658,44 @@ function Hero() {
                   {t.hero.badge}
                 </span>
               </p>
-            </Reveal>
+            </div>
 
-            <Reveal delay={60}>
-              <h1 className="mt-7 text-[2.125rem] font-extrabold leading-[1.05] tracking-[-0.035em] text-[#F1EFE6] sm:text-[3.25rem] lg:text-[4rem]">
-                {t.hero.title}
-              </h1>
-            </Reveal>
+            <ForgedTitle
+              text={t.hero.title}
+              animate={animate}
+              className="mt-7 text-[2.125rem] font-extrabold leading-[1.05] tracking-[-0.035em] text-[#F1EFE6] sm:text-[3.25rem] lg:text-[4rem]"
+            />
 
-            <Reveal delay={120}>
-              <p className="mt-5 font-mono text-sm tracking-[0.02em] text-[#E8A63E] sm:text-[0.9375rem]">
-                {t.hero.subtitle}
-              </p>
-            </Reveal>
+            <p
+              className="fw-h fw-h-wipe mt-5 font-mono text-sm tracking-[0.02em] text-[#E8A63E] sm:text-[0.9375rem]"
+              style={{ "--d": "1000ms" }}
+            >
+              {t.hero.subtitle}
+            </p>
 
-            <Reveal delay={180}>
-              <p className="mt-5 max-w-xl text-[0.9375rem] leading-[1.55] text-[#8791A6] sm:text-[1.0625rem]">
-                {t.hero.body}
-              </p>
-            </Reveal>
+            <p
+              className="fw-h fw-h-up mt-5 max-w-xl text-[0.9375rem] leading-[1.55] text-[#8791A6] sm:text-[1.0625rem]"
+              style={{ "--d": "1150ms" }}
+            >
+              {t.hero.body}
+            </p>
 
-            <Reveal delay={240}>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <PrimaryLink href="#contact">
-                  {t.hero.primaryCta}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </PrimaryLink>
-                <GhostLink href="#services">{t.hero.secondaryCta}</GhostLink>
-              </div>
-            </Reveal>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap" {...magnetHandlers}>
+              <PrimaryLink href="#contact" className="fw-h fw-h-pop fw-magnet" style={{ "--d": "1350ms" }}>
+                {t.hero.primaryCta}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </PrimaryLink>
+              <GhostLink href="#services" className="fw-h fw-h-pop fw-magnet" style={{ "--d": "1470ms" }}>
+                {t.hero.secondaryCta}
+              </GhostLink>
+            </div>
           </div>
 
-          <Reveal delay={200} className="lg:pl-2">
-            <CodeWindow />
-          </Reveal>
+          <div ref={refs.codeWrap} className="fw-h fw-h-flip lg:pl-2" style={{ "--d": "450ms" }}>
+            <div ref={refs.tilt}>
+              <CodeWindow start={stage !== "intro"} delay={animate ? 600 : 0} />
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1329,7 +1809,8 @@ function Method() {
                 {!isLast ? (
                   <span
                     aria-hidden="true"
-                    className="absolute left-[15px] top-9 h-[calc(100%+1rem)] w-px bg-[#232A3A] lg:hidden"
+                    className="fw-draw-y absolute left-[15px] top-9 h-[calc(100%+1rem)] w-px bg-[#232A3A] lg:hidden"
+                    style={{ transitionDelay: `${i * 80 + 300}ms` }}
                   />
                 ) : null}
                 <span
@@ -1343,9 +1824,10 @@ function Method() {
                 <div className="hidden items-center gap-3 lg:flex" aria-hidden="true">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#3FDDB0]" />
                   <span
-                    className={`h-px flex-1 ${
+                    className={`fw-draw-x h-px flex-1 ${
                       isLast ? "bg-gradient-to-r from-[#232A3A] to-transparent" : "bg-[#232A3A]"
                     }`}
+                    style={{ transitionDelay: `${i * 80 + 300}ms` }}
                   />
                 </div>
 
@@ -1385,13 +1867,13 @@ function Stack() {
               id="stack-title"
               className="mt-3 text-xl font-bold tracking-[-0.02em] text-[#F1EFE6] sm:text-2xl"
             >
-              {t.stack.title}
+              <SplitWords text={t.stack.title} />
             </h2>
           </div>
 
           <ul className="flex flex-wrap gap-2.5">
-            {STACK.map((tech) => (
-              <li key={tech}>
+            {STACK.map((tech, i) => (
+              <li key={tech} className="fw-pop" style={{ "--i": i }}>
                 <span className="inline-flex items-center rounded-[10px] border border-[#232A3A] bg-[#121620] px-3.5 py-2.5 font-mono text-[0.8125rem] text-[#F1EFE6] transition-colors duration-200 hover:border-[#3FDDB0] hover:text-[#3FDDB0] motion-reduce:transition-none">
                   <span className="text-[#7A85A0]" aria-hidden="true">
                     #
@@ -1531,7 +2013,7 @@ function Pricing() {
             return (
               <Reveal key={plan.name} delay={i * 70} className="h-full">
                 <article
-                  className={`flex h-full flex-col rounded-[13px] border bg-[#121620] p-6 transition-[transform,border-color] duration-200 motion-reduce:transition-none sm:p-7 ${
+                  className={`fw-spot flex h-full flex-col rounded-[13px] border bg-[#121620] p-6 transition-[transform,border-color] duration-200 motion-reduce:transition-none sm:p-7 ${
                     featured
                       ? "border-[#3FDDB0] shadow-[0_0_0_1px_rgba(63,221,176,0.25),0_28px_70px_-40px_rgba(63,221,176,0.55)] lg:-translate-y-2"
                       : `border-[#232A3A] ${CARD_HOVER}`
@@ -1846,7 +2328,7 @@ function Contact() {
                   id="contact-title"
                   className="mt-4 text-3xl font-bold tracking-[-0.03em] text-[#F1EFE6] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]"
                 >
-                  {t.contact.title}
+                  <SplitWords text={t.contact.title} />
                 </h2>
                 <p className="mt-5 max-w-md text-[0.9375rem] leading-[1.55] text-[#8791A6]">
                   {t.contact.intro}
@@ -2181,7 +2663,10 @@ export default function ForgeWeb() {
 
   return (
     <LangContext.Provider value={value}>
-      <div className="fw-root min-h-screen bg-[#0B0E14] text-[#F1EFE6] antialiased">
+      <div
+        className="fw-root min-h-screen bg-[#0B0E14] text-[#F1EFE6] antialiased"
+        onPointerMove={trackSpotlight}
+      >
         <style>{`
           .fw-root {
             font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -2211,13 +2696,215 @@ export default function ForgeWeb() {
             -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 25%, transparent 85%);
           }
 
+          .fw-root, .fw-intro { --fw-ease: cubic-bezier(0.16, 1, 0.3, 1); }
+
+          /* ---- Below the hero: calm scroll reveals ---- */
           .fw-reveal {
             opacity: 0;
-            transform: translateY(14px);
-            transition: opacity 300ms ease-out, transform 300ms ease-out;
+            transform: translateY(24px);
+            transition: opacity 700ms var(--fw-ease), transform 900ms var(--fw-ease);
             will-change: opacity, transform;
           }
           .fw-reveal-in { opacity: 1; transform: none; }
+
+          /* Heading words rise out of a mask. */
+          .fw-wmask {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: top;
+            padding-bottom: 0.12em;
+            margin-bottom: -0.12em;
+          }
+          .fw-word-in {
+            display: inline-block;
+            transform: translateY(110%);
+            transition: transform 1000ms var(--fw-ease);
+            transition-delay: calc(80ms + var(--i) * 45ms);
+          }
+          .fw-reveal-in .fw-word-in { transform: none; }
+
+          /* Method: the track draws between steps. */
+          .fw-draw-x, .fw-draw-y { transition: transform 1100ms var(--fw-ease); }
+          .fw-draw-x { transform: scaleX(0); transform-origin: left center; }
+          .fw-draw-y { transform: scaleY(0); transform-origin: center top; }
+          .fw-reveal-in .fw-draw-x, .fw-reveal-in .fw-draw-y { transform: none; }
+
+          /* Stack chips pop in one after another. */
+          .fw-pop {
+            opacity: 0;
+            transform: translateY(10px) scale(0.9);
+            transition: opacity 500ms ease, transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition-delay: calc(200ms + var(--i) * 45ms);
+          }
+          .fw-reveal-in .fw-pop { opacity: 1; transform: none; }
+
+          /* Cards: a soft light follows the mouse. */
+          .fw-spot { position: relative; }
+          .fw-spot::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 300ms ease;
+            background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgba(63, 221, 176, 0.09), transparent 60%);
+          }
+          .fw-spot:hover::after { opacity: 1; }
+
+          /* Primary buttons: a light sweep on hover. */
+          .fw-shine { position: relative; overflow: hidden; }
+          .fw-shine::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            transform: translateX(-120%) skewX(-20deg);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+          }
+          .fw-shine:hover::after { transform: translateX(120%) skewX(-20deg); transition: transform 700ms var(--fw-ease); }
+
+          /* ---- Hero: the cinematic part ---- */
+          .fw-hero[data-stage="intro"] .fw-h,
+          .fw-hero[data-stage="intro"] .fw-forge-char { opacity: 0; }
+          .fw-hero[data-stage="enter"] .fw-h {
+            animation-duration: 900ms;
+            animation-timing-function: var(--fw-ease);
+            animation-fill-mode: both;
+            animation-delay: var(--d, 0ms);
+          }
+          .fw-hero[data-stage="enter"] .fw-h-down { animation-name: fw-down; }
+          .fw-hero[data-stage="enter"] .fw-h-up { animation-name: fw-up; }
+          .fw-hero[data-stage="enter"] .fw-h-wipe {
+            animation-name: fw-wipe;
+            animation-duration: 1100ms;
+            animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+          }
+          .fw-hero[data-stage="enter"] .fw-h-pop {
+            animation-name: fw-pop;
+            animation-duration: 700ms;
+            animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          .fw-hero[data-stage="enter"] .fw-h-flip { animation-name: fw-flip; animation-duration: 1500ms; }
+          @keyframes fw-down { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+          @keyframes fw-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+          @keyframes fw-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+          @keyframes fw-pop { from { opacity: 0; transform: scale(0.85) translateY(10px); } to { opacity: 1; transform: none; } }
+          @keyframes fw-flip {
+            from { opacity: 0; transform: perspective(1200px) translateX(80px) rotateY(-32deg) rotateX(8deg) scale(0.9); }
+            to { opacity: 1; transform: none; }
+          }
+
+          /* Title letters land hot and cool down. */
+          .fw-forge-word { display: inline-block; white-space: nowrap; perspective: 600px; }
+          .fw-forge-char { display: inline-block; transform-origin: 50% 100%; }
+          .fw-hero[data-stage="enter"] .fw-forge-char {
+            animation: fw-forge 1800ms var(--fw-ease) both;
+            animation-delay: calc(120ms + var(--i) * 26ms);
+          }
+          @keyframes fw-forge {
+            0% { opacity: 0; transform: translateY(0.7em) rotateX(-95deg) scale(1.15); color: #E8A63E; text-shadow: 0 0 0 rgba(232, 166, 62, 0); }
+            30% { opacity: 1; transform: none; color: rgb(255, 210, 122); text-shadow: 0 0 22px rgba(232, 166, 62, 0.9), 0 0 4px rgba(255, 210, 122, 0.9); }
+            100% { opacity: 1; transform: none; color: #F1EFE6; text-shadow: 0 0 0 rgba(232, 166, 62, 0); }
+          }
+
+          .fw-hero .fw-shine:hover { box-shadow: 0 10px 40px -8px rgba(63, 221, 176, 0.7); }
+
+          /* Intro overlay. */
+          .fw-intro { position: fixed; inset: 0; z-index: 100; cursor: pointer; }
+          .fw-intro-word, .fw-intro-skip {
+            font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
+              "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+          }
+          .fw-intro-half {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 50.5%;
+            background: #0B0E14;
+            transition: transform 1000ms cubic-bezier(0.76, 0, 0.24, 1);
+          }
+          .fw-intro-half.is-top { top: 0; }
+          .fw-intro-half.is-bot { bottom: 0; }
+          .fw-intro.is-open .fw-intro-half.is-top { transform: translateY(-100%); }
+          .fw-intro.is-open .fw-intro-half.is-bot { transform: translateY(100%); }
+          .fw-intro-seam {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            margin-top: -1px;
+            background: linear-gradient(90deg, transparent, #3FDDB0, #E8A63E, #3FDDB0, transparent);
+            box-shadow: 0 0 24px rgba(63, 221, 176, 0.8);
+            transform: scaleX(0);
+            opacity: 0;
+          }
+          .fw-intro.is-seam .fw-intro-seam { transition: transform 450ms var(--fw-ease), opacity 200ms; transform: scaleX(1); opacity: 1; }
+          .fw-intro.is-open .fw-intro-seam { transition: opacity 500ms 200ms; opacity: 0; }
+          .fw-intro-core {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            transition: opacity 400ms ease, transform 900ms var(--fw-ease);
+          }
+          .fw-intro.is-seam .fw-intro-core { opacity: 0; transform: scale(1.15); }
+          .fw-intro-anvil { position: relative; width: 132px; height: 132px; }
+          .fw-anvil-body {
+            transform-box: fill-box;
+            transform-origin: 50% 100%;
+            animation: fw-anvil-in 600ms var(--fw-ease) both, fw-anvil-hit 300ms ease-out 760ms both;
+          }
+          .fw-anvil-cursor { animation: fw-cursor-drop 380ms cubic-bezier(0.55, 0, 1, 0.45) 380ms both; }
+          @keyframes fw-anvil-in { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; transform: none; } }
+          @keyframes fw-anvil-hit { 0% { transform: none; } 35% { transform: translateY(1.2px) scaleY(0.94) scaleX(1.03); } 100% { transform: none; } }
+          @keyframes fw-cursor-drop { 0% { opacity: 0; transform: translateY(-26px); } 20% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+          .fw-intro-flash {
+            position: absolute;
+            left: 50%;
+            top: 38.75%;
+            width: 260px;
+            height: 260px;
+            margin: -130px 0 0 -130px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 214, 140, 0.55), rgba(232, 166, 62, 0.15) 40%, transparent 70%);
+            opacity: 0;
+          }
+          .fw-intro.is-hit .fw-intro-flash { animation: fw-flash 700ms ease-out both; }
+          @keyframes fw-flash { 0% { opacity: 0; transform: scale(0.3); } 15% { opacity: 1; } 100% { opacity: 0; transform: scale(1.6); } }
+          .fw-intro-sparks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+          .fw-intro-word {
+            font-weight: 700;
+            font-size: 1.375rem;
+            letter-spacing: 0.32em;
+            margin-right: -0.32em;
+            color: #F1EFE6;
+          }
+          .fw-intro-word span { display: inline-block; opacity: 0; }
+          .fw-intro.is-hit .fw-intro-word span {
+            animation: fw-stamp 500ms var(--fw-ease) both;
+            animation-delay: calc(80ms + var(--i) * 45ms);
+          }
+          @keyframes fw-stamp {
+            from { opacity: 0; transform: translateY(12px) scale(1.4); filter: blur(4px); }
+            to { opacity: 1; transform: none; filter: none; }
+          }
+          .fw-intro-skip {
+            position: absolute;
+            bottom: 28px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #5D6579;
+          }
+          .fw-intro.is-seam .fw-intro-skip { opacity: 0; }
 
           .fw-caret {
             display: inline-block;
@@ -2241,6 +2928,8 @@ export default function ForgeWeb() {
           @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
             .fw-reveal { opacity: 1; transform: none; transition: none; }
+            .fw-word-in, .fw-draw-x, .fw-draw-y, .fw-pop { opacity: 1; transform: none; transition: none; }
+            .fw-shine::after, .fw-spot::after { display: none; }
             .fw-caret-blink, .fw-ping { animation: none; }
             .fw-ping { opacity: 0; }
           }
@@ -2255,6 +2944,7 @@ export default function ForgeWeb() {
           {t.skipToContent}
         </a>
 
+        <ScrollProgress />
         <Header />
 
         <main id="main-content" className="relative z-10 overflow-x-clip">

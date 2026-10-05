@@ -46,8 +46,11 @@ for (const vp of VIEWPORTS) {
     })
   );
 
+  // Skip the once-per-session intro, then let the hero entrance finish: the
+  // title letters scale up mid-flight and would read as clipped text.
+  await page.addInitScript(() => sessionStorage.setItem("fw-intro-seen", "1"));
   await page.goto(URL, { waitUntil: "networkidle" });
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(2600);
 
   // Optionally audit the English copy: LANG=en node test/audit.mjs
   if (process.env.LANG_CODE === "en") {
