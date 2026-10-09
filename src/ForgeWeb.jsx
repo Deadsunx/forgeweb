@@ -26,9 +26,9 @@ import {
   Mail,
   Menu,
   MessageCircle,
-  MonitorSmartphone,
   Send,
   Share2,
+  ShoppingBag,
   Sparkles,
   X,
 } from "lucide-react";
@@ -98,9 +98,9 @@ const PROJECT_META = [
     accent: C.mint,
   },
   {
-    icon: MonitorSmartphone,
-    live: "https://oumar-tirera.vercel.app",
-    repo: "https://github.com/Deadsunx/portfolio",
+    // Client project: the code is private, so the card shows no Code link.
+    icon: ShoppingBag,
+    live: "https://kanko-creation.vercel.app",
     accent: C.gold,
   },
   {
@@ -236,7 +236,7 @@ const COPY = {
       label: "Réalisations",
       title: "Des projets en ligne, pas des maquettes",
       intro:
-        "Trois projets que nous avons développés et mis en ligne. Chacun est consultable et son code est public — vous pouvez vérifier le travail avant de nous confier le vôtre.",
+        "Trois projets que nous avons développés et mis en ligne. Chacun est consultable : vous pouvez vérifier le travail avant de nous confier le vôtre.",
       liveBadge: "En ligne",
       viewSite: "Voir le site",
       viewCode: "Code",
@@ -250,10 +250,10 @@ const COPY = {
           body: "Transfert de fichiers directement d’un navigateur à l’autre, sans passer par un serveur : aucune limite de taille et chiffrement de bout en bout.",
         },
         {
-          kind: "Site vitrine",
-          title: "Portfolio personnel",
-          tags: ["React.js", "Vite", "Tailwind CSS"],
-          body: "Site vitrine une page, avec animations au défilement et identité visuelle sur-mesure. Pensé d’abord pour le mobile, jusqu’au grand écran.",
+          kind: "Boutique en ligne",
+          title: "Kanko Creation — crochet fait main",
+          tags: ["Next.js", "Payload CMS", "Commandes WhatsApp"],
+          body: "Boutique bilingue pour une marque de crochet fait main à Kinshasa. Chaque commande est enregistrée puis envoyée sur WhatsApp, et la créatrice met à jour ses pièces elle-même depuis son espace d’administration.",
         },
         {
           kind: "Données & API",
@@ -510,7 +510,7 @@ const COPY = {
       label: "Work",
       title: "Live projects, not mockups",
       intro:
-        "Three projects we built and shipped. Each one is live and its code is public — you can check the work before trusting us with yours.",
+        "Three projects we built and shipped. Each one is live, so you can check the work before trusting us with yours.",
       liveBadge: "Live",
       viewSite: "View site",
       viewCode: "Code",
@@ -524,10 +524,10 @@ const COPY = {
           body: "Files move straight from one browser to another with no server in between: no size limit, and end-to-end encryption.",
         },
         {
-          kind: "Brochure site",
-          title: "Personal portfolio",
-          tags: ["React.js", "Vite", "Tailwind CSS"],
-          body: "One-page site with scroll animations and a custom visual identity. Built mobile-first, all the way up to large screens.",
+          kind: "Online store",
+          title: "Kanko Creation — handmade crochet",
+          tags: ["Next.js", "Payload CMS", "WhatsApp orders"],
+          body: "Bilingual storefront for a handmade crochet brand in Kinshasa. Each order is recorded, then handed off to WhatsApp, and the maker updates her own pieces from her admin panel.",
         },
         {
           kind: "Data & APIs",
@@ -1967,16 +1967,18 @@ function Projects() {
                           className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-hover:translate-y-0"
                         />
                       </a>
-                      <a
-                        href={meta.repo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`inline-flex min-h-[44px] items-center gap-1.5 rounded text-sm text-[#8791A6] transition-colors duration-200 hover:text-[#F1EFE6] motion-reduce:transition-none ${FOCUS}`}
-                      >
-                        <Github className="h-4 w-4" aria-hidden="true" />
-                        {t.projects.viewCode}
-                        <span className="sr-only">{t.projects.srViewCode(project.title)}</span>
-                      </a>
+                      {meta.repo ? (
+                        <a
+                          href={meta.repo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex min-h-[44px] items-center gap-1.5 rounded text-sm text-[#8791A6] transition-colors duration-200 hover:text-[#F1EFE6] motion-reduce:transition-none ${FOCUS}`}
+                        >
+                          <Github className="h-4 w-4" aria-hidden="true" />
+                          {t.projects.viewCode}
+                          <span className="sr-only">{t.projects.srViewCode(project.title)}</span>
+                        </a>
+                      ) : null}
                     </div>
                   </div>
                 </article>

@@ -4,7 +4,7 @@ const src = readFileSync("src/ForgeWeb.jsx", "utf8");
 const count = (name) => (src.match(new RegExp(`\\b${name}\\b`, "g")) || []).length;
 
 const icons = src
-  .match(/import \{([\s\S]*?)\} from "lucide-react"/)[1]
+  .match(/import \{([^}]*)\} from "lucide-react"/)[1]
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
