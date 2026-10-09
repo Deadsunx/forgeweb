@@ -329,7 +329,7 @@ const COPY = {
         },
         {
           q: "Travaillez-vous à distance ?",
-          a: "Oui. L’ensemble du projet peut se faire à distance : échanges par WhatsApp, e-mail ou visioconférence, avec un point d’avancement à chaque étape. Une rencontre sur place reste possible selon votre situation.",
+          a: "Oui, tout le projet se fait à distance : échanges par WhatsApp, e-mail ou visioconférence, avec un point d’avancement à chaque étape. Vous suivez l’avancement de votre site sans avoir à vous déplacer.",
         },
         {
           q: "Le nom de domaine et l’hébergement sont-ils inclus ?",
@@ -603,7 +603,7 @@ const COPY = {
         },
         {
           q: "Do you work remotely?",
-          a: "Yes. The whole project can run remotely: WhatsApp, email or video call, with a progress check at every stage. Meeting in person is still possible depending on where you are.",
+          a: "Yes, the whole project runs remotely: WhatsApp, email or video call, with a progress check at every stage. You follow your site’s progress without ever having to travel.",
         },
         {
           q: "Are the domain name and hosting included?",
