@@ -94,7 +94,7 @@ Variables d'environnement à définir dans Vercel
 
 | Variable | Requise | Rôle |
 | --- | --- | --- |
-| `RESEND_API_KEY` | oui | Clé API Resend |
+| `RESEND_API_KEY` | oui | Clé « Sending access » limitée à `forgewebafrica.com`, créée **dans le compte Resend où le domaine est vérifié** — une clé d'un autre compte est refusée |
 | `MAIL_TO` | non | Boîte qui reçoit les demandes (défaut : `forgeweb.ml@gmail.com`) |
 | `MAIL_FROM` | non | Expéditeur (défaut : `contact@forgewebafrica.com`) |
 
