@@ -18,7 +18,7 @@
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const MAIL_TO = process.env.MAIL_TO || "forgeweb.ml@gmail.com";
-const MAIL_FROM = process.env.MAIL_FROM || "FORGEWEB <contact@forgewebafrica.com>";
+const MAIL_FROM = process.env.MAIL_FROM || "FORGEWEB <onboarding@resend.dev>";
 
 const MAX = { name: 120, email: 200, projectType: 80, message: 5000 };
 
