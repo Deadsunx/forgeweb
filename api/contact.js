@@ -8,16 +8,17 @@
  * Environment variables (Vercel > Settings > Environment Variables):
  *   RESEND_API_KEY  required — from https://resend.com
  *   MAIL_TO         optional — inbox that receives the leads
- *   MAIL_FROM       optional — verified sender; see the note below
+ *   MAIL_FROM       optional — overrides the sender below
  *
- * On a fresh Resend account with no verified domain you may only send FROM
- * onboarding@resend.dev and only TO the address you signed up with. Verify a
- * domain to send from your own address and to anyone.
+ * The default sender lives on forgewebafrica.com, which is verified in Resend
+ * (DKIM + SPF + DMARC records at Namecheap). If that verification is ever
+ * lost, Resend rejects the send and the form shows its error state with the
+ * email address as a fallback — it does not fail silently.
  */
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const MAIL_TO = process.env.MAIL_TO || "forgeweb.ml@gmail.com";
-const MAIL_FROM = process.env.MAIL_FROM || "FORGEWEB <onboarding@resend.dev>";
+const MAIL_FROM = process.env.MAIL_FROM || "FORGEWEB <contact@forgewebafrica.com>";
 
 const MAX = { name: 120, email: 200, projectType: 80, message: 5000 };
 

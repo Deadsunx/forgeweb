@@ -96,10 +96,13 @@ Variables d'environnement à définir dans Vercel
 | --- | --- | --- |
 | `RESEND_API_KEY` | oui | Clé API Resend |
 | `MAIL_TO` | non | Boîte qui reçoit les demandes (défaut : `forgeweb.ml@gmail.com`) |
-| `MAIL_FROM` | non | Expéditeur vérifié (défaut : `onboarding@resend.dev`) |
+| `MAIL_FROM` | non | Expéditeur (défaut : `contact@forgewebafrica.com`) |
 
-Sans domaine vérifié chez Resend, l'envoi n'est possible que **depuis**
-`onboarding@resend.dev` et **vers** l'adresse du compte Resend.
+Le domaine `forgewebafrica.com` est vérifié chez Resend (enregistrements
+DKIM, SPF et DMARC chez Namecheap) : les demandes partent de
+`contact@forgewebafrica.com`. Ne supprimez pas les enregistrements
+`resend._domainkey`, `send`, `rsend` et `_dmarc` dans Namecheap, sinon
+l'envoi échoue et le formulaire affiche son message d'erreur.
 
 Si la fonction n'est pas disponible (`npm run dev`, ou déploiement statique),
 le formulaire retombe automatiquement sur `mailto:` : le bouton n'est jamais
