@@ -92,22 +92,19 @@ const STACK = ["React.js", "JavaScript / TypeScript", "HTML5 & CSS3", "SQL", "Gi
 
 const PROJECT_META = [
   {
-    icon: Share2,
-    live: "https://strand-silk.vercel.app",
-    repo: "https://github.com/Deadsunx/strand",
-    accent: C.mint,
-  },
-  {
     // Client project: the code is private, so the card shows no Code link.
     icon: ShoppingBag,
     live: "https://kanko-creation.vercel.app",
-    accent: C.gold,
+  },
+  {
+    icon: Share2,
+    live: "https://strand-silk.vercel.app",
+    repo: "https://github.com/Deadsunx/strand",
   },
   {
     icon: CalendarClock,
     live: "https://daily-ephemeris.vercel.app",
     repo: "https://github.com/Deadsunx/daily-ephemeris",
-    accent: C.mint,
   },
 ];
 
@@ -244,16 +241,16 @@ const COPY = {
       srViewCode: (title) => ` source de ${title}, nouvel onglet`,
       items: [
         {
-          kind: "Application web",
-          title: "Strand — partage de fichiers",
-          tags: ["TypeScript", "WebRTC", "Chiffrement E2E"],
-          body: "Transfert de fichiers directement d’un navigateur à l’autre, sans passer par un serveur : aucune limite de taille et chiffrement de bout en bout.",
-        },
-        {
           kind: "Boutique en ligne",
           title: "Kanko Creation — crochet fait main",
           tags: ["Next.js", "Payload CMS", "Commandes WhatsApp"],
           body: "Boutique bilingue pour une marque de crochet fait main à Kinshasa. Chaque commande est enregistrée puis envoyée sur WhatsApp, et la créatrice met à jour ses pièces elle-même depuis son espace d’administration.",
+        },
+        {
+          kind: "Application web",
+          title: "Strand — partage de fichiers",
+          tags: ["TypeScript", "WebRTC", "Chiffrement E2E"],
+          body: "Transfert de fichiers directement d’un navigateur à l’autre, sans passer par un serveur : aucune limite de taille et chiffrement de bout en bout.",
         },
         {
           kind: "Données & API",
@@ -518,16 +515,16 @@ const COPY = {
       srViewCode: (title) => ` source for ${title}, new tab`,
       items: [
         {
-          kind: "Web application",
-          title: "Strand — file sharing",
-          tags: ["TypeScript", "WebRTC", "E2E encryption"],
-          body: "Files move straight from one browser to another with no server in between: no size limit, and end-to-end encryption.",
-        },
-        {
           kind: "Online store",
           title: "Kanko Creation — handmade crochet",
           tags: ["Next.js", "Payload CMS", "WhatsApp orders"],
           body: "Bilingual storefront for a handmade crochet brand in Kinshasa. Each order is recorded, then handed off to WhatsApp, and the maker updates her own pieces from her admin panel.",
+        },
+        {
+          kind: "Web application",
+          title: "Strand — file sharing",
+          tags: ["TypeScript", "WebRTC", "E2E encryption"],
+          body: "Files move straight from one browser to another with no server in between: no size limit, and end-to-end encryption.",
         },
         {
           kind: "Data & APIs",
@@ -1909,6 +1906,9 @@ function Projects() {
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
           {t.projects.items.map((project, i) => {
             const meta = PROJECT_META[i];
+            // Alternate accents by position, not per project, so order changes
+            // and new projects keep the mint / gold rhythm.
+            const accent = i % 2 === 0 ? C.mint : C.gold;
             const Icon = meta.icon;
             return (
               <Reveal key={project.title} delay={i * 70} className="h-full">
@@ -1918,13 +1918,13 @@ function Projects() {
                       aria-hidden="true"
                       className="absolute inset-0 opacity-60"
                       style={{
-                        background: `radial-gradient(120% 90% at 50% 0%, ${meta.accent}1F, transparent 70%)`,
+                        background: `radial-gradient(120% 90% at 50% 0%, ${accent}1F, transparent 70%)`,
                       }}
                     />
                     <Icon
                       aria-hidden="true"
                       className="relative h-10 w-10"
-                      style={{ color: meta.accent }}
+                      style={{ color: accent }}
                     />
                     <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-md border border-[#232A3A] bg-[#0B0E14]/80 px-2 py-1 font-mono text-[0.625rem] uppercase tracking-[0.14em] text-[#8791A6]">
                       <span className="h-1.5 w-1.5 rounded-full bg-[#3FDDB0]" aria-hidden="true" />
