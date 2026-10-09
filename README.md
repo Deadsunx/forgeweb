@@ -147,4 +147,4 @@ Les captures d'écran sont écrites dans `test/shots/` (non versionné).
 
 ## Contact
 
-forgeweb.ml@gmail.com
+contact@forgewebafrica.com

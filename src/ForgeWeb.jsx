@@ -51,7 +51,7 @@ const C = {
   mint: "#3FDDB0",
 };
 
-const CONTACT_EMAIL = "forgeweb.ml@gmail.com";
+const CONTACT_EMAIL = "contact@forgewebafrica.com";
 
 /*
  * Form delivery. Posts to the serverless function in api/contact.js, which
