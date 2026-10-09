@@ -29,22 +29,21 @@ const LOGO = `<html><head><style>${BASE}
   .mark{position:relative;margin-top:-10px}</style></head><body>
   <div class="glow g1"></div><div class="glow g2"></div><div class="mark">${ANVIL(400)}</div></body></html>`;
 
-// Cover: 16:9, key content kept in the centre so Google's crops don't cut it.
+// Cover: 16:9, but every element sits inside the centre 820px, because
+// Google also shows covers as square, centre-cropped tiles (1600x900 ->
+// the middle 900x900). Text near the edges gets cut there.
 const COVER = `<html><head><style>${BASE}
-  body{width:1600px;height:900px;display:flex;flex-direction:column;justify-content:center;padding:0 150px}
-  .g1{top:-260px;left:-200px;width:820px;height:820px;background:radial-gradient(circle,rgba(232,166,62,.20),transparent 68%)}
-  .g2{top:-160px;right:-260px;width:880px;height:880px;background:radial-gradient(circle,rgba(63,221,176,.18),transparent 68%)}
-  .row{position:relative;display:flex;align-items:center;gap:26px}
-  .word{font-size:56px;font-weight:700;letter-spacing:.18em}
-  h1{position:relative;font-size:98px;line-height:1.03;letter-spacing:-.035em;font-weight:800;margin-top:52px;max-width:17ch}
-  .sub{position:relative;margin-top:36px;font-size:32px;color:#E8A63E}
-  .foot{position:relative;margin-top:54px;display:flex;gap:18px;font-size:26px}
-  .pill{border:1px solid #232A3A;background:#121620;border-radius:999px;padding:13px 24px}</style></head><body>
+  body{width:1600px;height:900px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .g1{top:-260px;left:-160px;width:820px;height:820px;background:radial-gradient(circle,rgba(232,166,62,.20),transparent 68%)}
+  .g2{bottom:-300px;right:-200px;width:880px;height:880px;background:radial-gradient(circle,rgba(63,221,176,.18),transparent 68%)}
+  .row{position:relative;display:flex;align-items:center;gap:22px}
+  .word{font-size:46px;font-weight:700;letter-spacing:.18em}
+  h1{position:relative;font-size:76px;line-height:1.04;letter-spacing:-.035em;font-weight:800;margin-top:44px}
+  .sub{position:relative;margin-top:32px;font-size:25px;color:#E8A63E}</style></head><body>
   <div class="glow g1"></div><div class="glow g2"></div><div class="dots"></div>
-  <div class="row">${ANVIL(124)}<span class="word mono">FORGE<span class="mint">WEB</span></span></div>
-  <h1>Des sites web qui travaillent pour votre activité.</h1>
+  <div class="row">${ANVIL(104)}<span class="word mono">FORGE<span class="mint">WEB</span></span></div>
+  <h1>Des sites web qui<br>travaillent pour<br>votre activité.</h1>
   <div class="sub mono">Développement Web Full-Stack · React &amp; Next.js</div>
-  <div class="foot mono"><span class="pill">Sites vitrines</span><span class="pill">Applications web</span><span class="pill">Bases de données &amp; API</span></div>
   </body></html>`;
 
 const b = await chromium.launch({ headless: true });
