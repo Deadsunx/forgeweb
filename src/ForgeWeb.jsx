@@ -286,7 +286,7 @@ const COPY = {
         },
         {
           name: "Professionnel",
-          price: "Sur devis",
+          price: "Dès 150 000 FCFA",
           tagline: "Pour une activité qui a besoin de plusieurs pages.",
           features: [
             "Site multi-pages",
@@ -560,7 +560,7 @@ const COPY = {
         },
         {
           name: "Professional",
-          price: "On request",
+          price: "From 150,000 FCFA",
           tagline: "For a business that needs several pages.",
           features: [
             "Multi-page site",
@@ -2034,7 +2034,7 @@ function Pricing() {
 
                   <p className="mt-2 text-sm leading-[1.5] text-[#8791A6]">{plan.tagline}</p>
 
-                  <p className="mt-6 font-mono text-2xl font-bold tracking-[-0.02em] text-[#E8A63E] sm:text-[1.75rem]">
+                  <p className="mt-6 font-mono text-[1.375rem] font-bold min-[360px]:text-2xl tracking-[-0.02em] text-[#E8A63E] sm:text-[1.75rem] lg:text-[1.375rem] xl:text-[1.75rem]">
                     {plan.price}
                   </p>
 
