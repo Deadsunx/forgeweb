@@ -36,6 +36,7 @@ Toute la page vit dans un seul composant autonome :
 | `api/contact.js` | Fonction serverless Vercel : validation et envoi du courriel |
 | `public/favicon.svg` | Le logo (favicon et fichier réutilisable) |
 | `public/og-image.png` | Image affichée au partage du lien (WhatsApp, Facebook) |
+| `public/showcase/kanko-creation.webp` | Capture du site Kanko Creation affichée dans l'iPhone du hero |
 | `test/audit.mjs` | Audit Playwright : débordement, cibles tactiles, interactions |
 | `test/a11y.mjs` | Audit WCAG 2.1 AA : contraste, libellés, focus, reflow |
 | `test/deadcode.mjs` | Détection d'imports, constantes et couleurs inutilisés |
@@ -44,6 +45,7 @@ Toute la page vit dans un seul composant autonome :
 | `test/i18n.mjs` | Traduction : couverture FR/EN, `lang`, bascule du formulaire |
 | `test/header-fit.mjs` | En-tête : marge disponible et nom accessible du logo |
 | `test/meta.mjs` | Open Graph, carte Twitter et données structurées JSON-LD |
+| `test/hero-timing.mjs` | Délai avant titre lisible et bouton visible, sur mobile 4G lente |
 | `test/og-image.mjs` | Génère `public/og-image.png` (aperçu de partage 1200x630) |
 
 ## Partage et référencement

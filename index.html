@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#0B0E14" />
+    <!--
+      Paint the page dark from the first byte. The app renders in JavaScript,
+      so without this the screen is white until the bundle arrives (~2 s on
+      slow mobile data), and iOS shows white when you pull past either end.
+    -->
+    <style>html { background-color: #0B0E14; color-scheme: dark; }</style>
 
     <title>FORGEWEB — Développement web full-stack à Bamako</title>
     <meta

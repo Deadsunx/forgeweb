@@ -120,7 +120,7 @@ const setLang = async (code) => {
   const skip = await page.locator('a[href="#main-content"]').textContent();
   if (!/Skip to main content/i.test(skip || "")) note(`en: skip link not translated ("${skip}")`);
 
-  const wa = await page.locator('a[href^="https://wa.me/"]').getAttribute("href");
+  const wa = await page.locator('a[href^="https://wa.me/"]').first().getAttribute("href");
   if (!/Hello%20FORGEWEB/i.test(wa || "")) note("en: WhatsApp prefilled message not translated");
 
   const placeholder = await page.locator("#contact-message").getAttribute("placeholder");
@@ -139,12 +139,16 @@ const setLang = async (code) => {
   }
 }
 
-/* ---------- 5. the code window swaps too ---------- */
+/* ---------- 5. the hero phone swaps too ---------- */
 {
-  const code = await page.locator("pre").first().innerText();
-  if (!/Full-Stack Web Development/.test(code)) note("en: code window value not translated");
-  if (!/\bavailable\b/.test(code)) note("en: code window key not translated");
-  if (/disponible/.test(code)) note("en: code window still shows the French key");
+  const alt = await page.locator(".fw-phone-site").getAttribute("alt");
+  if (!/on an iPhone/.test(alt || "")) note(`en: phone image alt not translated ("${alt}")`);
+  const caption = await page.locator(".fw-phone-wrap figcaption").innerText();
+  if (!/Online store/.test(caption)) note(`en: phone caption not translated ("${caption.trim()}")`);
+  const island = await page.locator(".fw-island-title").textContent();
+  if (island !== "Order sent") note(`en: Dynamic Island text not translated ("${island}")`);
+  const fab = await page.locator('a.fixed[href^="https://wa.me/"]').getAttribute("aria-label");
+  if (!/WhatsApp/.test(fab || "") || FRENCH_CHARS.test(fab || "")) note(`en: WhatsApp button label not translated ("${fab}")`);
 }
 
 /* ---------- 6. switching back restores French ---------- */

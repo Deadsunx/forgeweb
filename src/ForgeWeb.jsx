@@ -45,8 +45,6 @@ import {
  *                                   #3FDDB0  mint accent
  */
 const C = {
-  text: "#F1EFE6",
-  muted: "#8791A6",
   gold: "#E8A63E",
   mint: "#3FDDB0",
 };
@@ -138,11 +136,13 @@ const COPY = {
       primaryCta: "Demander un devis",
       secondaryCta: "Voir nos services",
       introSkip: "Cliquez pour passer",
+      showcaseLabel: "Réalisation",
+      showcaseNote: "Boutique en ligne · commandes par WhatsApp",
+      showcaseLink: "Voir le site",
+      showcaseAlt: "Le site de Kanko Creation, boutique de crochet fait main, affiché sur un iPhone",
+      islandTitle: "Commande envoyée",
+      islandSub: "via WhatsApp",
     },
-
-    // Rendered in the hero code window. `service` and the boolean key change
-    // per language; the stack values are proper nouns and stay put.
-    code: { serviceKey: "service", serviceValue: "Développement Web Full-Stack", availableKey: "disponible" },
 
     services: {
       label: "Services",
@@ -415,9 +415,13 @@ const COPY = {
       primaryCta: "Get a quote",
       secondaryCta: "See our services",
       introSkip: "Click to skip",
+      showcaseLabel: "Work",
+      showcaseNote: "Online store · orders over WhatsApp",
+      showcaseLink: "View site",
+      showcaseAlt: "The Kanko Creation site, a handmade crochet shop, shown on an iPhone",
+      islandTitle: "Order sent",
+      islandSub: "via WhatsApp",
     },
-
-    code: { serviceKey: "service", serviceValue: "Full-Stack Web Development", availableKey: "available" },
 
     services: {
       label: "Services",
@@ -672,66 +676,6 @@ const LangContext = createContext({ lang: "fr", setLang: () => {}, t: COPY.fr })
 const useLang = () => useContext(LangContext);
 
 /* ------------------------------------------------------------------ */
-/*  Hero code window                                                   */
-/* ------------------------------------------------------------------ */
-
-const TOKEN_COLOR = {
-  kw: C.gold,
-  bool: C.gold,
-  id: C.text,
-  key: C.mint,
-  str: C.text,
-  op: C.muted,
-  punc: C.muted,
-};
-
-function buildCode(t) {
-  const lines = [
-    [
-      ["const ", "kw"],
-      ["forgeweb", "id"],
-      [" = ", "op"],
-      ["{", "punc"],
-    ],
-    [
-      [`  ${t.code.serviceKey}`, "key"],
-      [": ", "op"],
-      [`"${t.code.serviceValue}"`, "str"],
-      [",", "punc"],
-    ],
-    [
-      ["  stack", "key"],
-      [": ", "op"],
-      ["[", "punc"],
-      ['"React.js"', "str"],
-      [", ", "punc"],
-      ['"TypeScript"', "str"],
-      [", ", "punc"],
-      ['"SQL"', "str"],
-      ["]", "punc"],
-      [",", "punc"],
-    ],
-    [
-      [`  ${t.code.availableKey}`, "key"],
-      [": ", "op"],
-      ["true", "bool"],
-      [",", "punc"],
-    ],
-    [["};", "punc"]],
-  ];
-
-  // Character offset at which each line starts; the newline counts as one
-  // char so the caret pauses at the end of a line before dropping down.
-  const starts = [];
-  let n = 0;
-  for (const line of lines) {
-    starts.push(n);
-    n += line.reduce((sum, [text]) => sum + text.length, 0) + 1;
-  }
-  return { lines, starts, length: n };
-}
-
-/* ------------------------------------------------------------------ */
 /*  Motion helpers                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -948,7 +892,7 @@ function Embers() {
 function useHeroDepth(enabled, refs) {
   useEffect(() => {
     if (!enabled) return undefined;
-    const { section, column, codeWrap, tilt, glowA, glowB } = refs;
+    const { section, column, visual, tilt, glowA, glowB } = refs;
     const fine = hasFinePointer();
     const target = { x: 0, y: 0 };
     const eased = { x: 0, y: 0 };
@@ -964,8 +908,8 @@ function useHeroDepth(enabled, refs) {
 
       column.current.style.translate = `0 ${(-y * 0.28).toFixed(1)}px`;
       column.current.style.opacity = String(clamp01(1 - p * 1.3));
-      codeWrap.current.style.translate = `0 ${(y * 0.1).toFixed(1)}px`;
-      codeWrap.current.style.scale = String(1 - p * 0.1);
+      visual.current.style.translate = `0 ${(y * 0.1).toFixed(1)}px`;
+      visual.current.style.scale = String(1 - p * 0.1);
       if (fine) {
         tilt.current.style.transform = `perspective(1100px) rotateY(${(eased.x * 8).toFixed(2)}deg) rotateX(${(-eased.y * 6).toFixed(2)}deg)`;
       }
@@ -990,7 +934,7 @@ function useHeroDepth(enabled, refs) {
       io.disconnect();
       window.removeEventListener("pointermove", onMove);
       // Only the properties set here: the glows keep their React-owned background.
-      for (const r of [column, codeWrap, tilt, glowA, glowB]) {
+      for (const r of [column, visual, tilt, glowA, glowB]) {
         if (!r.current) continue;
         for (const prop of ["translate", "scale", "opacity", "transform"]) {
           r.current.style.removeProperty(prop);
@@ -1159,24 +1103,33 @@ function ForgeIntro({ onOpen, onDone }) {
         window.setTimeout(() => {
           setPhase(3);
           callbacks.current.onOpen();
-        }, 380),
-        window.setTimeout(() => callbacks.current.onDone(), 1500)
+        }, 260),
+        window.setTimeout(() => callbacks.current.onDone(), 950)
       );
     };
 
-    timers.push(
-      window.setTimeout(() => {
-        setPhase(1);
-        const r = anvilRef.current.getBoundingClientRect();
-        // The strike lands on the anvil's face, 12.4 units down its 32-unit box.
-        burstSparks(sparksRef.current, r.left + r.width / 2, r.top + r.height * (12.4 / 32));
-      }, 760),
-      window.setTimeout(open, 1650)
-    );
+    // Start the clock on the first painted frame, not on mount. If that frame
+    // is slow (a heavy first paint), timers started at mount are already
+    // overdue when the overlay appears, and the strike gets skipped.
+    let raf = window.requestAnimationFrame(() => {
+      raf = window.requestAnimationFrame(() => {
+        if (opened) return;
+        timers.push(
+          window.setTimeout(() => {
+            setPhase(1);
+            const r = anvilRef.current.getBoundingClientRect();
+            // The strike lands on the anvil's face, 12.4 units down its 32-unit box.
+            burstSparks(sparksRef.current, r.left + r.width / 2, r.top + r.height * (12.4 / 32));
+          }, 430),
+          window.setTimeout(open, 950)
+        );
+      });
+    });
     window.addEventListener("pointerdown", open);
     window.addEventListener("keydown", open);
 
     return () => {
+      window.cancelAnimationFrame(raf);
       timers.forEach(window.clearTimeout);
       window.removeEventListener("pointerdown", open);
       window.removeEventListener("keydown", open);
@@ -1481,124 +1434,192 @@ function Header() {
   );
 }
 
+const whatsappHref = (t) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.contact.whatsappMessage)}`;
+
+/** WhatsApp's own glyph (Simple Icons, CC0): instantly recognisable, unlike a generic bubble. */
+function WhatsAppGlyph({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor" className={className}>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+    </svg>
+  );
+}
+
+/**
+ * Kanko Creation on an iPhone. The screen is a screenshot of the live
+ * storefront, not an iframe, so the hero doesn't load a whole second site on
+ * slow connections. It pans from the landing view to the product grid, and
+ * while it rests there the Dynamic Island shows the site's real order flow:
+ * every order is handed to WhatsApp. Static under reduced motion.
+ * Sizes are in cqw (1% of the phone's width) so the device scales as a unit.
+ */
+function PhoneShowcase() {
+  const { t } = useLang();
+  return (
+    <figure className="fw-phone-wrap mx-auto w-[248px] sm:w-[280px] lg:w-[300px]">
+      <div className="fw-phone">
+        <span aria-hidden="true" className="fw-phone-btn is-action" />
+        <span aria-hidden="true" className="fw-phone-btn is-vol-up" />
+        <span aria-hidden="true" className="fw-phone-btn is-vol-down" />
+        <span aria-hidden="true" className="fw-phone-btn is-power" />
+        <div className="fw-phone-screen">
+          <img
+            src="/showcase/kanko-creation.webp"
+            width="624"
+            height="2620"
+            alt={t.hero.showcaseAlt}
+            loading="lazy"
+            decoding="async"
+            className="fw-phone-site"
+          />
+          <div aria-hidden="true" className="fw-phone-status">
+            <span>9:41</span>
+            <span className="fw-phone-icons">
+              <svg viewBox="0 0 18 12">
+                <rect x="0" y="8" width="3.4" height="4" rx="0.8" />
+                <rect x="4.6" y="6" width="3.4" height="6" rx="0.8" />
+                <rect x="9.2" y="3.5" width="3.4" height="8.5" rx="0.8" />
+                <rect x="13.8" y="1" width="3.4" height="11" rx="0.8" />
+              </svg>
+              <svg viewBox="0 0 16 12">
+                <path
+                  d="M2.2 4.6a8.2 8.2 0 0 1 11.6 0M4.6 7.1a4.8 4.8 0 0 1 6.8 0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
+                <circle cx="8" cy="10" r="1.45" />
+              </svg>
+              <svg viewBox="0 0 27 12">
+                <rect x="0.6" y="0.6" width="22" height="10.8" rx="3" fill="none" stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
+                <rect x="2.6" y="2.6" width="18" height="6.8" rx="1.6" />
+                <rect x="24" y="4" width="1.8" height="4" rx="0.9" fillOpacity="0.45" />
+              </svg>
+            </span>
+          </div>
+          <div aria-hidden="true" className="fw-island">
+            <span className="fw-island-content">
+              <span className="fw-island-icon">
+                <WhatsAppGlyph className="h-[56%] w-[56%]" />
+              </span>
+              <span className="fw-island-text">
+                <span className="fw-island-title">{t.hero.islandTitle}</span>
+                <span className="fw-island-sub">{t.hero.islandSub}</span>
+              </span>
+              <Check className="fw-island-check" strokeWidth={3} />
+            </span>
+          </div>
+          <span aria-hidden="true" className="fw-phone-home" />
+        </div>
+      </div>
+      <figcaption className="mt-5 text-center">
+        <span className="block font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-[#8791A6]">
+          {t.hero.showcaseLabel} · <span className="text-[#F1EFE6]">Kanko Creation</span>
+        </span>
+        <span className="mt-1 flex flex-wrap items-center justify-center gap-x-3 text-sm text-[#8791A6]">
+          {t.hero.showcaseNote}
+          <a
+            href="https://kanko-creation.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex min-h-[44px] items-center gap-1 rounded font-semibold text-[#3FDDB0] transition-colors duration-200 hover:text-[#5CE8C1] motion-reduce:transition-none ${FOCUS}`}
+          >
+            {t.hero.showcaseLink}
+            <span className="sr-only">{t.projects.srViewSite("Kanko Creation")}</span>
+            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          </a>
+        </span>
+      </figcaption>
+    </figure>
+  );
+}
+
+/**
+ * Floating WhatsApp button for phones, where WhatsApp is how clients reach
+ * you. It stays out of the way of the hero's own buttons, and of the contact
+ * section and footer, which already carry the same link.
+ */
+function WhatsAppFab() {
+  const { t } = useLang();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const hero = document.getElementById("top");
+    const blockers = [document.getElementById("contact"), document.querySelector("footer")].filter(Boolean);
+    if (!hero || typeof IntersectionObserver === "undefined") {
+      setShow(true);
+      return undefined;
+    }
+    let heroVisible = true;
+    const blocking = new Set();
+    const update = () => setShow(!heroVisible && blocking.size === 0);
+    // The hero counts as "in the way" until less than 40% of it is on screen.
+    const heroIo = new IntersectionObserver(
+      ([entry]) => {
+        heroVisible = entry.intersectionRatio >= 0.4;
+        update();
+      },
+      { threshold: [0, 0.4, 1] }
+    );
+    // Contact and footer only count once they reach the upper 65% of the
+    // screen; a sliver of the contact heading at the bottom shouldn't hide it.
+    const blockIo = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) blocking.add(entry.target);
+          else blocking.delete(entry.target);
+        }
+        update();
+      },
+      { rootMargin: "0px 0px -35% 0px" }
+    );
+    heroIo.observe(hero);
+    blockers.forEach((el) => blockIo.observe(el));
+    return () => {
+      heroIo.disconnect();
+      blockIo.disconnect();
+    };
+  }, []);
+
+  if (!WHATSAPP_NUMBER) return null;
+  return (
+    <a
+      href={whatsappHref(t)}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${t.contact.whatsappCta}${t.newTab}`}
+      aria-hidden={!show}
+      tabIndex={show ? 0 : -1}
+      className={`fixed bottom-5 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#3FDDB0] text-[#0B0E14] shadow-[0_10px_30px_-8px_rgba(63,221,176,0.65),0_4px_12px_rgba(0,0,0,0.5)] transition-[opacity,transform] duration-200 motion-reduce:transition-none md:hidden ${FOCUS} ${
+        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0 motion-reduce:translate-y-0"
+      }`}
+    >
+      <WhatsAppGlyph className="h-7 w-7" />
+    </a>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Hero                                                               */
 /* ------------------------------------------------------------------ */
 
 /**
- * `start` holds the typing back (the intro is still covering the hero);
- * `delay` waits for the window's own entrance before the first keystroke.
- */
-function CodeWindow({ start = true, delay = 0 }) {
-  const { lang, t } = useLang();
-  const code = useMemo(() => buildCode(t), [t]);
-  const [typed, setTyped] = useState(() => (prefersReducedMotion() ? code.length : 0));
-  const firstRun = useRef(true);
-
-  // Type out on first mount only. Switching language swaps the text in fully
-  // formed — re-running the animation would just delay reading it.
-  useEffect(() => {
-    if (firstRun.current) {
-      firstRun.current = false;
-      return undefined;
-    }
-    setTyped(code.length);
-    return undefined;
-  }, [lang, code.length]);
-
-  useEffect(() => {
-    if (!start || typed >= code.length) return undefined;
-    let id;
-    const wait = window.setTimeout(() => {
-      id = window.setInterval(() => {
-        setTyped((prev) => {
-          if (prev >= code.length) {
-            window.clearInterval(id);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 22);
-    }, delay);
-    return () => {
-      window.clearTimeout(wait);
-      window.clearInterval(id);
-    };
-    // Starts once `start` is set; the interval clears itself when the text is complete.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [start]);
-
-  const done = typed >= code.length;
-  const activeLine = useMemo(() => {
-    if (done) return code.lines.length - 1;
-    for (let i = code.lines.length - 1; i >= 0; i -= 1) {
-      if (typed >= code.starts[i]) return i;
-    }
-    return 0;
-  }, [typed, done, code]);
-
-  return (
-    <div className="overflow-hidden rounded-[13px] border border-[#232A3A] bg-[#0E121B] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)]">
-      <div className="flex items-center gap-3 border-b border-[#232A3A] bg-[#121620] px-4 py-3">
-        <div className="flex items-center gap-1.5" aria-hidden="true">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
-        </div>
-        <span className="font-mono text-xs text-[#8791A6]">forgeweb.js</span>
-      </div>
-
-      <div className="overflow-x-auto px-4 py-5 sm:px-5">
-        <pre className="font-mono text-[0.75rem] leading-[1.9] sm:text-[0.8125rem]">
-          <code>
-            {code.lines.map((line, lineIndex) => {
-              let cursor = code.starts[lineIndex];
-              return (
-                <div key={lineIndex} className="flex whitespace-pre">
-                  <span
-                    aria-hidden="true"
-                    className="mr-4 hidden w-4 shrink-0 select-none text-right text-[#7A85A0] sm:inline-block"
-                  >
-                    {lineIndex + 1}
-                  </span>
-                  <span>
-                    {line.map(([text, kind], tokenIndex) => {
-                      const start = cursor;
-                      cursor += text.length;
-                      const visible = Math.max(0, Math.min(text.length, typed - start));
-                      if (visible === 0) return null;
-                      return (
-                        <span key={tokenIndex} style={{ color: TOKEN_COLOR[kind] }}>
-                          {text.slice(0, visible)}
-                        </span>
-                      );
-                    })}
-                    {lineIndex === activeLine ? (
-                      <span
-                        aria-hidden="true"
-                        className={`fw-caret ${done ? "fw-caret-blink" : ""}`}
-                      />
-                    ) : null}
-                  </span>
-                </div>
-              );
-            })}
-          </code>
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-/**
  * The hero is the one cinematic moment on the page. Stages:
  *   "intro"  — first visit this session: ForgeIntro covers the hero
- *   "enter"  — the hero plays its entrance (badge, forged title, code window…)
+ *   "enter"  — the hero plays its entrance (badge, forged title, phone…)
  *   "static" — reduced motion: everything is simply there
  */
+// Phones skip the full-screen intro: on slow mobile data it held the
+// headline back by ~2 s, and phones are where most visitors are.
+function introEnabled() {
+  return typeof window.matchMedia === "function" && window.matchMedia("(min-width: 1024px) and (pointer: fine)").matches;
+}
+
 function initialHeroStage() {
   if (prefersReducedMotion()) return "static";
-  return introSeen() ? "enter" : "intro";
+  return introSeen() || !introEnabled() ? "enter" : "intro";
 }
 
 function Hero() {
@@ -1610,7 +1631,7 @@ function Hero() {
   const refs = {
     section: useRef(null),
     column: useRef(null),
-    codeWrap: useRef(null),
+    visual: useRef(null),
     tilt: useRef(null),
     glowA: useRef(null),
     glowB: useRef(null),
@@ -1665,32 +1686,32 @@ function Hero() {
 
             <p
               className="fw-h fw-h-wipe mt-5 font-mono text-sm tracking-[0.02em] text-[#E8A63E] sm:text-[0.9375rem]"
-              style={{ "--d": "1000ms" }}
+              style={{ "--d": "320ms" }}
             >
               {t.hero.subtitle}
             </p>
 
             <p
               className="fw-h fw-h-up mt-5 max-w-xl text-[0.9375rem] leading-[1.55] text-[#8791A6] sm:text-[1.0625rem]"
-              style={{ "--d": "1150ms" }}
+              style={{ "--d": "380ms" }}
             >
               {t.hero.body}
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap" {...magnetHandlers}>
-              <PrimaryLink href="#contact" className="fw-h fw-h-pop fw-magnet" style={{ "--d": "1350ms" }}>
+              <PrimaryLink href="#contact" className="fw-h fw-h-pop fw-magnet" style={{ "--d": "440ms" }}>
                 {t.hero.primaryCta}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </PrimaryLink>
-              <GhostLink href="#services" className="fw-h fw-h-pop fw-magnet" style={{ "--d": "1470ms" }}>
+              <GhostLink href="#services" className="fw-h fw-h-pop fw-magnet" style={{ "--d": "500ms" }}>
                 {t.hero.secondaryCta}
               </GhostLink>
             </div>
           </div>
 
-          <div ref={refs.codeWrap} className="fw-h fw-h-flip lg:pl-2" style={{ "--d": "450ms" }}>
+          <div ref={refs.visual} className="fw-h fw-h-flip lg:pl-2" style={{ "--d": "150ms" }}>
             <div ref={refs.tilt}>
-              <CodeWindow start={stage !== "intro"} delay={animate ? 600 : 0} />
+              <PhoneShowcase />
             </div>
           </div>
         </div>
@@ -2352,9 +2373,7 @@ function Contact() {
                       {t.contact.whatsappIntro}
                     </p>
                     <a
-                      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-                        t.contact.whatsappMessage
-                      )}`}
+                      href={whatsappHref(t)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`mt-4 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] border border-[#232A3A] bg-[#0B0E14] px-5 py-3 text-sm font-semibold text-[#F1EFE6] transition-colors duration-200 hover:border-[#3FDDB0] hover:text-[#3FDDB0] motion-reduce:transition-none ${FOCUS}`}
@@ -2770,7 +2789,7 @@ export default function ForgeWeb() {
           .fw-hero[data-stage="intro"] .fw-h,
           .fw-hero[data-stage="intro"] .fw-forge-char { opacity: 0; }
           .fw-hero[data-stage="enter"] .fw-h {
-            animation-duration: 900ms;
+            animation-duration: 600ms;
             animation-timing-function: var(--fw-ease);
             animation-fill-mode: both;
             animation-delay: var(--d, 0ms);
@@ -2779,15 +2798,15 @@ export default function ForgeWeb() {
           .fw-hero[data-stage="enter"] .fw-h-up { animation-name: fw-up; }
           .fw-hero[data-stage="enter"] .fw-h-wipe {
             animation-name: fw-wipe;
-            animation-duration: 1100ms;
+            animation-duration: 650ms;
             animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
           }
           .fw-hero[data-stage="enter"] .fw-h-pop {
             animation-name: fw-pop;
-            animation-duration: 700ms;
+            animation-duration: 450ms;
             animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
           }
-          .fw-hero[data-stage="enter"] .fw-h-flip { animation-name: fw-flip; animation-duration: 1500ms; }
+          .fw-hero[data-stage="enter"] .fw-h-flip { animation-name: fw-flip; animation-duration: 900ms; }
           @keyframes fw-down { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
           @keyframes fw-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
           @keyframes fw-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
@@ -2801,8 +2820,8 @@ export default function ForgeWeb() {
           .fw-forge-word { display: inline-block; white-space: nowrap; perspective: 600px; }
           .fw-forge-char { display: inline-block; transform-origin: 50% 100%; }
           .fw-hero[data-stage="enter"] .fw-forge-char {
-            animation: fw-forge 1800ms var(--fw-ease) both;
-            animation-delay: calc(120ms + var(--i) * 26ms);
+            animation: fw-forge 1000ms var(--fw-ease) both;
+            animation-delay: calc(40ms + var(--i) * 9ms);
           }
           @keyframes fw-forge {
             0% { opacity: 0; transform: translateY(0.7em) rotateX(-95deg) scale(1.15); color: #E8A63E; text-shadow: 0 0 0 rgba(232, 166, 62, 0); }
@@ -2811,6 +2830,126 @@ export default function ForgeWeb() {
           }
 
           .fw-hero .fw-shine:hover { box-shadow: 0 10px 40px -8px rgba(63, 221, 176, 0.7); }
+
+          /* iPhone mockup (hero). 1cqw = 1% of the phone's width. */
+          .fw-phone-wrap { container-type: inline-size; }
+          .fw-phone {
+            position: relative;
+            aspect-ratio: 71.6 / 146.6;
+            padding: 3.4cqw;
+            border-radius: 15cqw;
+            background: linear-gradient(145deg, #3A3F48 0%, #1B1E24 34%, #2B2F37 66%, #121418 100%);
+            box-shadow:
+              inset 0 0 0 0.55cqw #0A0B0E,
+              inset 0 0 0 0.9cqw rgba(255, 255, 255, 0.05),
+              0 0 0 1px rgba(255, 255, 255, 0.07),
+              0 40px 80px -30px rgba(0, 0, 0, 0.9),
+              0 0 70px -14px rgba(63, 221, 176, 0.2);
+          }
+          .fw-phone-btn { position: absolute; width: 1cqw; border-radius: 1cqw; background: #2B2F37; }
+          .fw-phone-btn.is-action { left: -0.8cqw; top: 19%; height: 6%; }
+          .fw-phone-btn.is-vol-up { left: -0.8cqw; top: 28%; height: 10%; }
+          .fw-phone-btn.is-vol-down { left: -0.8cqw; top: 40%; height: 10%; }
+          .fw-phone-btn.is-power { right: -0.8cqw; top: 31%; height: 15%; }
+          .fw-phone-screen {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 11.6cqw;
+            background: #FBF7F1;
+          }
+          .fw-phone-site {
+            position: absolute;
+            top: 12.5cqw;
+            left: 0;
+            width: 100%;
+            height: auto;
+            animation: fw-pan 16s ease-in-out infinite;
+          }
+          /* Rest on the landing view, glide down to the product grid, rest, glide back. */
+          @keyframes fw-pan {
+            0%, 12% { transform: translateY(0); }
+            42%, 70% { transform: translateY(-205cqw); }
+            92%, 100% { transform: translateY(0); }
+          }
+          .fw-phone-status {
+            position: absolute;
+            inset: 0 0 auto 0;
+            z-index: 1;
+            height: 12.5cqw;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.6cqw 8.5cqw 0 10cqw;
+            background: #FBF7F1;
+            color: #111111;
+            font: 600 4cqw/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+          }
+          .fw-phone-icons { display: flex; align-items: center; gap: 1.4cqw; }
+          .fw-phone-icons svg { height: 2.9cqw; width: auto; fill: currentColor; }
+          .fw-island {
+            position: absolute;
+            top: 2.9cqw;
+            left: 50%;
+            z-index: 2;
+            width: 30cqw;
+            height: 8.8cqw;
+            border-radius: 4.4cqw;
+            background: #000000;
+            transform: translateX(-50%);
+            overflow: hidden;
+            animation: fw-island 16s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+          }
+          /* While the screen rests on the product grid, a "commande envoyée" live activity. */
+          @keyframes fw-island {
+            0%, 50% { width: 30cqw; height: 8.8cqw; border-radius: 4.4cqw; }
+            54%, 63% { width: 84cqw; height: 15.5cqw; border-radius: 7.75cqw; }
+            67%, 100% { width: 30cqw; height: 8.8cqw; border-radius: 4.4cqw; }
+          }
+          .fw-island-content {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 84cqw;
+            display: flex;
+            align-items: center;
+            gap: 2.8cqw;
+            padding: 0 3.4cqw;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            animation: fw-island-content 16s ease infinite;
+          }
+          @keyframes fw-island-content {
+            0%, 52% { opacity: 0; }
+            55%, 62% { opacity: 1; }
+            64%, 100% { opacity: 0; }
+          }
+          .fw-island-icon {
+            display: flex;
+            flex: none;
+            align-items: center;
+            justify-content: center;
+            width: 9cqw;
+            height: 9cqw;
+            border-radius: 50%;
+            background: #3FDDB0;
+            color: #0B0E14;
+          }
+          .fw-island-text { display: flex; flex: 1; flex-direction: column; gap: 0.6cqw; min-width: 0; }
+          .fw-island-title { color: #F1EFE6; font: 600 3.4cqw/1.1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+          .fw-island-sub { color: #8791A6; font: 500 2.7cqw/1.1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+          .fw-island-check { flex: none; width: 4.8cqw; height: 4.8cqw; color: #3FDDB0; }
+          .fw-phone-home {
+            position: absolute;
+            bottom: 1.6cqw;
+            left: 50%;
+            z-index: 1;
+            width: 33cqw;
+            height: 1.25cqw;
+            border-radius: 1cqw;
+            background: rgba(17, 17, 17, 0.85);
+            transform: translateX(-50%);
+          }
 
           /* Intro overlay. */
           .fw-intro { position: fixed; inset: 0; z-index: 100; cursor: pointer; }
@@ -2824,7 +2963,7 @@ export default function ForgeWeb() {
             right: 0;
             height: 50.5%;
             background: #0B0E14;
-            transition: transform 1000ms cubic-bezier(0.76, 0, 0.24, 1);
+            transition: transform 650ms cubic-bezier(0.76, 0, 0.24, 1);
           }
           .fw-intro-half.is-top { top: 0; }
           .fw-intro-half.is-bot { bottom: 0; }
@@ -2842,8 +2981,8 @@ export default function ForgeWeb() {
             transform: scaleX(0);
             opacity: 0;
           }
-          .fw-intro.is-seam .fw-intro-seam { transition: transform 450ms var(--fw-ease), opacity 200ms; transform: scaleX(1); opacity: 1; }
-          .fw-intro.is-open .fw-intro-seam { transition: opacity 500ms 200ms; opacity: 0; }
+          .fw-intro.is-seam .fw-intro-seam { transition: transform 300ms var(--fw-ease), opacity 140ms; transform: scaleX(1); opacity: 1; }
+          .fw-intro.is-open .fw-intro-seam { transition: opacity 320ms 120ms; opacity: 0; }
           .fw-intro-core {
             position: absolute;
             inset: 0;
@@ -2852,16 +2991,16 @@ export default function ForgeWeb() {
             align-items: center;
             justify-content: center;
             gap: 22px;
-            transition: opacity 400ms ease, transform 900ms var(--fw-ease);
+            transition: opacity 250ms ease, transform 550ms var(--fw-ease);
           }
           .fw-intro.is-seam .fw-intro-core { opacity: 0; transform: scale(1.15); }
           .fw-intro-anvil { position: relative; width: 132px; height: 132px; }
           .fw-anvil-body {
             transform-box: fill-box;
             transform-origin: 50% 100%;
-            animation: fw-anvil-in 600ms var(--fw-ease) both, fw-anvil-hit 300ms ease-out 760ms both;
+            animation: fw-anvil-in 360ms var(--fw-ease) both, fw-anvil-hit 200ms ease-out 430ms both;
           }
-          .fw-anvil-cursor { animation: fw-cursor-drop 380ms cubic-bezier(0.55, 0, 1, 0.45) 380ms both; }
+          .fw-anvil-cursor { animation: fw-cursor-drop 230ms cubic-bezier(0.55, 0, 1, 0.45) 200ms both; }
           @keyframes fw-anvil-in { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; transform: none; } }
           @keyframes fw-anvil-hit { 0% { transform: none; } 35% { transform: translateY(1.2px) scaleY(0.94) scaleX(1.03); } 100% { transform: none; } }
           @keyframes fw-cursor-drop { 0% { opacity: 0; transform: translateY(-26px); } 20% { opacity: 1; } 100% { opacity: 1; transform: none; } }
@@ -2876,7 +3015,7 @@ export default function ForgeWeb() {
             background: radial-gradient(circle, rgba(255, 214, 140, 0.55), rgba(232, 166, 62, 0.15) 40%, transparent 70%);
             opacity: 0;
           }
-          .fw-intro.is-hit .fw-intro-flash { animation: fw-flash 700ms ease-out both; }
+          .fw-intro.is-hit .fw-intro-flash { animation: fw-flash 450ms ease-out both; }
           @keyframes fw-flash { 0% { opacity: 0; transform: scale(0.3); } 15% { opacity: 1; } 100% { opacity: 0; transform: scale(1.6); } }
           .fw-intro-sparks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
           .fw-intro-word {
@@ -2888,8 +3027,8 @@ export default function ForgeWeb() {
           }
           .fw-intro-word span { display: inline-block; opacity: 0; }
           .fw-intro.is-hit .fw-intro-word span {
-            animation: fw-stamp 500ms var(--fw-ease) both;
-            animation-delay: calc(80ms + var(--i) * 45ms);
+            animation: fw-stamp 300ms var(--fw-ease) both;
+            animation-delay: calc(40ms + var(--i) * 26ms);
           }
           @keyframes fw-stamp {
             from { opacity: 0; transform: translateY(12px) scale(1.4); filter: blur(4px); }
@@ -2908,16 +3047,6 @@ export default function ForgeWeb() {
           }
           .fw-intro.is-seam .fw-intro-skip { opacity: 0; }
 
-          .fw-caret {
-            display: inline-block;
-            width: 0.55em;
-            height: 1.05em;
-            margin-left: 1px;
-            vertical-align: text-bottom;
-            background-color: #3FDDB0;
-          }
-          .fw-caret-blink { animation: fw-blink 1.05s steps(1, end) infinite; }
-          @keyframes fw-blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
 
           .fw-ping { animation: fw-ping-kf 1.9s cubic-bezier(0, 0, 0.2, 1) infinite; }
           @keyframes fw-ping-kf {
@@ -2932,7 +3061,8 @@ export default function ForgeWeb() {
             .fw-reveal { opacity: 1; transform: none; transition: none; }
             .fw-word-in, .fw-draw-x, .fw-draw-y, .fw-pop { opacity: 1; transform: none; transition: none; }
             .fw-shine::after, .fw-spot::after { display: none; }
-            .fw-caret-blink, .fw-ping { animation: none; }
+            .fw-ping { animation: none; }
+            .fw-phone-site, .fw-island, .fw-island-content { animation: none; }
             .fw-ping { opacity: 0; }
           }
         `}</style>
@@ -2961,6 +3091,7 @@ export default function ForgeWeb() {
         </main>
 
         <Footer />
+        <WhatsAppFab />
       </div>
     </LangContext.Provider>
   );
