@@ -175,7 +175,10 @@ for (const vp of VIEWPORTS) {
     const out = [];
     const groups = document.querySelectorAll("[class*='grid']");
     for (const g of groups) {
-      const kids = [...g.children].map((k) => ({ el: k, r: k.getBoundingClientRect() }));
+      // Hidden siblings stacked in one cell on purpose (the hero phone's captions) aren't overlaps.
+      const kids = [...g.children]
+        .filter((k) => getComputedStyle(k).visibility !== "hidden")
+        .map((k) => ({ el: k, r: k.getBoundingClientRect() }));
       for (let i = 0; i < kids.length; i++) {
         for (let j = i + 1; j < kids.length; j++) {
           const a = kids[i].r;

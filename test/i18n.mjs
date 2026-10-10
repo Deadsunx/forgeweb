@@ -141,7 +141,7 @@ const setLang = async (code) => {
 
 /* ---------- 5. the hero phone swaps too ---------- */
 {
-  const alt = await page.locator(".fw-phone-site").getAttribute("alt");
+  const alt = await page.locator(".fw-phone-site.is-active .fw-phone-shot").getAttribute("alt");
   if (!/on an iPhone/.test(alt || "")) note(`en: phone image alt not translated ("${alt}")`);
   const caption = await page.locator(".fw-phone-wrap figcaption").innerText();
   if (!/Online store/.test(caption)) note(`en: phone caption not translated ("${caption.trim()}")`);

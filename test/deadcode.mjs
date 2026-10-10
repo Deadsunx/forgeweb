@@ -31,8 +31,8 @@ console.log(
 
 // Tailwind classes referencing colours outside the declared palette.
 const palette = ["0B0E14","0E121B","121620","232A3A","39445C","F1EFE6","8791A6","7A85A0","5D6579","E8A63E","3FDDB0","5CE8C1","FF9B8A","FF5F57","FEBC2E","28C840",
-  // iPhone mockup in the hero: titanium frame, Dynamic Island, and Kanko's own cream status bar.
-  "3A3F48","1B1E24","2B2F37","121418","0A0B0E","000000","FBF7F1","111111"];
+  // iPhone mockup in the hero: titanium frame, Dynamic Island, and each showcased site's own status-bar colour.
+  "3A3F48","1B1E24","2B2F37","121418","0A0B0E","000000","FBF7F1","F6F1E7","111111"];
 const hexes = [...new Set([...src.matchAll(/#([0-9A-Fa-f]{6})/g)].map((m) => m[1].toUpperCase()))];
 console.log(`off-palette hexes     : ${hexes.filter((h) => !palette.includes(h)).join(", ") || "none"}`);
 console.log(`lines                 : ${src.split("\n").length}`);

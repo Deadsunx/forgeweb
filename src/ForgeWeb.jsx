@@ -26,6 +26,7 @@ import {
   Mail,
   Menu,
   MessageCircle,
+  Plane,
   Send,
   Share2,
   ShoppingBag,
@@ -95,6 +96,10 @@ const PROJECT_META = [
     live: "https://kanko-creation.vercel.app",
   },
   {
+    icon: Plane,
+    live: "https://aurevatravels.in",
+  },
+  {
     icon: Share2,
     live: "https://strand-silk.vercel.app",
     repo: "https://github.com/Deadsunx/strand",
@@ -103,6 +108,45 @@ const PROJECT_META = [
     icon: CalendarClock,
     live: "https://daily-ephemeris.vercel.app",
     repo: "https://github.com/Deadsunx/daily-ephemeris",
+  },
+];
+
+/*
+ * Client sites shown in turn on the hero iPhone. Each screenshot is the live
+ * site at 390px wide, 1.6x. `pan` is how far the screen glides to its second
+ * resting view; `screen` is the site's own background, so the status bar
+ * matches. `strip` is an optional horizontal carousel, captured in full and
+ * laid over the screenshot at `top`, that swipes by `shift` while the screen
+ * rests on it. Copy for each one lives in t.hero.showcases, in the same order.
+ */
+const SHOWCASES = [
+  {
+    name: "Kanko Creation",
+    href: "https://kanko-creation.vercel.app",
+    src: "/showcase/kanko-creation.webp",
+    width: 624,
+    height: 2620,
+    pan: "-205cqw",
+    screen: "#FBF7F1",
+    Icon: WhatsAppGlyph,
+  },
+  {
+    name: "Aureva Travels",
+    href: "https://aurevatravels.in",
+    src: "/showcase/aureva-travels.webp",
+    width: 624,
+    height: 2480,
+    pan: "-168cqw",
+    screen: "#F6F1E7",
+    Icon: Plane,
+    // The destination arches, swiped from Armenia to Kazakhstan.
+    strip: {
+      src: "/showcase/aureva-travels-arches.webp",
+      width: 1372,
+      height: 418,
+      top: "49.153%",
+      shift: "-111.72cqw",
+    },
   },
 ];
 
@@ -137,11 +181,23 @@ const COPY = {
       secondaryCta: "Voir nos services",
       introSkip: "Cliquez pour passer",
       showcaseLabel: "Réalisation",
-      showcaseNote: "Boutique en ligne · commandes par WhatsApp",
       showcaseLink: "Voir le site",
-      showcaseAlt: "Le site de Kanko Creation, boutique de crochet fait main, affiché sur un iPhone",
-      islandTitle: "Commande envoyée",
-      islandSub: "via WhatsApp",
+      showcasePick: (name) => `Afficher ${name}`,
+      showcasePicker: "Choisir la réalisation affichée",
+      showcases: [
+        {
+          note: "Boutique en ligne · commandes par WhatsApp",
+          alt: "Le site de Kanko Creation, boutique de crochet fait main, affiché sur un iPhone",
+          islandTitle: "Commande envoyée",
+          islandSub: "via WhatsApp",
+        },
+        {
+          note: "Agence de voyages · demandes en ligne",
+          alt: "Le site d’Aureva Travels, agence de voyages, affiché sur un iPhone",
+          islandTitle: "Demande envoyée",
+          islandSub: "Géorgie · 2 adultes",
+        },
+      ],
     },
 
     services: {
@@ -233,7 +289,7 @@ const COPY = {
       label: "Réalisations",
       title: "Des projets en ligne, pas des maquettes",
       intro:
-        "Trois projets que nous avons développés et mis en ligne. Chacun est consultable : vous pouvez vérifier le travail avant de nous confier le vôtre.",
+        "Des sites de clients et nos propres projets, tous en ligne. Chacun est consultable : vous pouvez vérifier le travail avant de nous confier le vôtre.",
       liveBadge: "En ligne",
       viewSite: "Voir le site",
       viewCode: "Code",
@@ -245,6 +301,12 @@ const COPY = {
           title: "Kanko Creation — crochet fait main",
           tags: ["Next.js", "Payload CMS", "Commandes WhatsApp"],
           body: "Boutique bilingue pour une marque de crochet fait main à Kinshasa. Chaque commande est enregistrée puis envoyée sur WhatsApp, et la créatrice met à jour ses pièces elle-même depuis son espace d’administration.",
+        },
+        {
+          kind: "Site vitrine",
+          title: "Aureva Travels — voyages sur mesure",
+          tags: ["Next.js", "Tailwind CSS", "SEO"],
+          body: "Site d’une agence de voyages en Inde : 12 destinations, chacune avec sa propre couleur, et un formulaire de demande qui indique de quelle page vient chaque contact.",
         },
         {
           kind: "Application web",
@@ -416,11 +478,23 @@ const COPY = {
       secondaryCta: "See our services",
       introSkip: "Click to skip",
       showcaseLabel: "Work",
-      showcaseNote: "Online store · orders over WhatsApp",
       showcaseLink: "View site",
-      showcaseAlt: "The Kanko Creation site, a handmade crochet shop, shown on an iPhone",
-      islandTitle: "Order sent",
-      islandSub: "via WhatsApp",
+      showcasePick: (name) => `Show ${name}`,
+      showcasePicker: "Choose which project is shown",
+      showcases: [
+        {
+          note: "Online store · orders over WhatsApp",
+          alt: "The Kanko Creation site, a handmade crochet shop, shown on an iPhone",
+          islandTitle: "Order sent",
+          islandSub: "via WhatsApp",
+        },
+        {
+          note: "Travel agency · online inquiries",
+          alt: "The Aureva Travels site, a travel agency, shown on an iPhone",
+          islandTitle: "Inquiry sent",
+          islandSub: "Georgia · 2 adults",
+        },
+      ],
     },
 
     services: {
@@ -511,7 +585,7 @@ const COPY = {
       label: "Work",
       title: "Live projects, not mockups",
       intro:
-        "Three projects we built and shipped. Each one is live, so you can check the work before trusting us with yours.",
+        "Client sites and our own projects, all live. Each one can be visited, so you can check the work before trusting us with yours.",
       liveBadge: "Live",
       viewSite: "View site",
       viewCode: "Code",
@@ -523,6 +597,12 @@ const COPY = {
           title: "Kanko Creation — handmade crochet",
           tags: ["Next.js", "Payload CMS", "WhatsApp orders"],
           body: "Bilingual storefront for a handmade crochet brand in Kinshasa. Each order is recorded, then handed off to WhatsApp, and the maker updates her own pieces from her admin panel.",
+        },
+        {
+          kind: "Business website",
+          title: "Aureva Travels — tailor-made trips",
+          tags: ["Next.js", "Tailwind CSS", "SEO"],
+          body: "Site for a travel agency in India: 12 destinations, each in its own colour, and an inquiry form that records which page every lead came from.",
         },
         {
           kind: "Web application",
@@ -1447,15 +1527,25 @@ function WhatsAppGlyph({ className = "" }) {
 }
 
 /**
- * Kanko Creation on an iPhone. The screen is a screenshot of the live
- * storefront, not an iframe, so the hero doesn't load a whole second site on
- * slow connections. It pans from the landing view to the product grid, and
- * while it rests there the Dynamic Island shows the site's real order flow:
- * every order is handed to WhatsApp. Static under reduced motion.
+ * Client sites on an iPhone, one after the other. Each screen is a screenshot
+ * of the live site, not an iframe, so the hero doesn't load whole extra sites
+ * on slow connections. A site pans from its landing view to a second view, and
+ * while it rests there the Dynamic Island shows what that site does with a
+ * visitor (Kanko hands every order to WhatsApp, Aureva takes trip inquiries).
+ * At the end of each pass the next site fades in. Keyboard focus inside the
+ * figure pauses it, and the picker lets visitors choose. Under reduced motion it stays
+ * still and only the picker changes the site.
  * Sizes are in cqw (1% of the phone's width) so the device scales as a unit.
  */
 function PhoneShowcase() {
   const { t } = useLang();
+  const [active, setActive] = useState(0);
+  // Bumped when a visitor picks a site, to restart the pan from the top.
+  const [pass, setPass] = useState(0);
+  const site = SHOWCASES[active];
+  const copy = t.hero.showcases[active];
+  const IslandIcon = site.Icon;
+
   return (
     <figure className="fw-phone-wrap mx-auto w-[248px] sm:w-[280px] lg:w-[300px]">
       <div className="fw-phone">
@@ -1463,16 +1553,47 @@ function PhoneShowcase() {
         <span aria-hidden="true" className="fw-phone-btn is-vol-up" />
         <span aria-hidden="true" className="fw-phone-btn is-vol-down" />
         <span aria-hidden="true" className="fw-phone-btn is-power" />
-        <div className="fw-phone-screen">
-          <img
-            src="/showcase/kanko-creation.webp"
-            width="624"
-            height="2620"
-            alt={t.hero.showcaseAlt}
-            loading="lazy"
-            decoding="async"
-            className="fw-phone-site"
-          />
+        <div key={pass} className="fw-phone-screen" style={{ "--screen": site.screen }}>
+          {SHOWCASES.map((s, i) => (
+            <div
+              key={s.src}
+              className={`fw-phone-site${i === active ? " is-active" : ""}`}
+              style={{ "--pan": s.pan }}
+              onAnimationIteration={
+                i === 0
+                  ? (e) => {
+                      if (e.animationName === "fw-pan") setActive((a) => (a + 1) % SHOWCASES.length);
+                    }
+                  : undefined
+              }
+            >
+              <img
+                src={s.src}
+                width={s.width}
+                height={s.height}
+                alt={i === active ? copy.alt : ""}
+                loading="lazy"
+                decoding="async"
+                className="fw-phone-shot"
+              />
+              {s.strip ? (
+                <img
+                  src={s.strip.src}
+                  width={s.strip.width}
+                  height={s.strip.height}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="fw-phone-strip"
+                  style={{
+                    top: s.strip.top,
+                    width: `${(s.strip.width / s.width) * 100}%`,
+                    "--shift": s.strip.shift,
+                  }}
+                />
+              ) : null}
+            </div>
+          ))}
           <div aria-hidden="true" className="fw-phone-status">
             <span>9:41</span>
             <span className="fw-phone-icons">
@@ -1502,11 +1623,11 @@ function PhoneShowcase() {
           <div aria-hidden="true" className="fw-island">
             <span className="fw-island-content">
               <span className="fw-island-icon">
-                <WhatsAppGlyph className="h-[56%] w-[56%]" />
+                <IslandIcon aria-hidden="true" strokeWidth={2.4} className="h-[56%] w-[56%]" />
               </span>
               <span className="fw-island-text">
-                <span className="fw-island-title">{t.hero.islandTitle}</span>
-                <span className="fw-island-sub">{t.hero.islandSub}</span>
+                <span className="fw-island-title">{copy.islandTitle}</span>
+                <span className="fw-island-sub">{copy.islandSub}</span>
               </span>
               <Check className="fw-island-check" strokeWidth={3} />
             </span>
@@ -1514,22 +1635,55 @@ function PhoneShowcase() {
           <span aria-hidden="true" className="fw-phone-home" />
         </div>
       </div>
-      <figcaption className="mt-5 text-center">
-        <span className="block font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-[#8791A6]">
-          {t.hero.showcaseLabel} · <span className="text-[#F1EFE6]">Kanko Creation</span>
-        </span>
-        <span className="mt-1 flex flex-wrap items-center justify-center gap-x-3 text-sm text-[#8791A6]">
-          {t.hero.showcaseNote}
-          <a
-            href="https://kanko-creation.vercel.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`inline-flex min-h-[44px] items-center gap-1 rounded font-semibold text-[#3FDDB0] transition-colors duration-200 hover:text-[#5CE8C1] motion-reduce:transition-none ${FOCUS}`}
+      <div role="group" aria-label={t.hero.showcasePicker} className="mt-3 flex justify-center">
+        {SHOWCASES.map((s, i) => (
+          <button
+            key={s.name}
+            type="button"
+            aria-pressed={i === active}
+            aria-label={t.hero.showcasePick(s.name)}
+            onClick={() => {
+              setActive(i);
+              setPass((p) => p + 1);
+            }}
+            className={`group inline-flex h-11 w-11 items-center justify-center rounded-md ${FOCUS}`}
           >
-            {t.hero.showcaseLink}
-            <span className="sr-only">{t.projects.srViewSite("Kanko Creation")}</span>
-            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-          </a>
+            <span
+              aria-hidden="true"
+              className={`block h-1.5 rounded-full transition-[width,background-color] duration-300 motion-reduce:transition-none ${
+                i === active ? "w-6 bg-[#3FDDB0]" : "w-1.5 bg-[#39445C] group-hover:bg-[#8791A6]"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+      <figcaption className="mt-1 text-center">
+        <span className="block font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-[#8791A6]">
+          {t.hero.showcaseLabel} · <span className="text-[#F1EFE6]">{site.name}</span>
+        </span>
+        {/* Every site's line sits in the same cell, so the caption is as tall
+            as the longest one and the page doesn't jump when the site changes. */}
+        <span className="mt-1 grid text-sm text-[#8791A6]">
+          {SHOWCASES.map((s, i) => (
+            <span
+              key={s.name}
+              className={`flex flex-wrap items-center justify-center gap-x-3 [grid-area:1/1] ${
+                i === active ? "" : "invisible"
+              }`}
+            >
+              {t.hero.showcases[i].note}
+              <a
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex min-h-[44px] items-center gap-1 rounded font-semibold text-[#3FDDB0] transition-colors duration-200 hover:text-[#5CE8C1] motion-reduce:transition-none ${FOCUS}`}
+              >
+                {t.hero.showcaseLink}
+                <span className="sr-only">{t.projects.srViewSite(s.name)}</span>
+                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </a>
+            </span>
+          ))}
         </span>
       </figcaption>
     </figure>
@@ -1924,7 +2078,7 @@ function Projects() {
           intro={t.projects.intro}
         />
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:mt-16">
           {t.projects.items.map((project, i) => {
             const meta = PROJECT_META[i];
             // Alternate accents by position, not per project, so order changes
@@ -2856,7 +3010,8 @@ export default function ForgeWeb() {
             height: 100%;
             overflow: hidden;
             border-radius: 11.6cqw;
-            background: #FBF7F1;
+            background: var(--screen, #FBF7F1);
+            transition: background-color 0.7s ease;
           }
           .fw-phone-site {
             position: absolute;
@@ -2864,13 +3019,34 @@ export default function ForgeWeb() {
             left: 0;
             width: 100%;
             height: auto;
+            opacity: 0;
+            transition: opacity 0.7s ease;
             animation: fw-pan 16s ease-in-out infinite;
           }
-          /* Rest on the landing view, glide down to the product grid, rest, glide back. */
+          .fw-phone-site.is-active { opacity: 1; }
+          .fw-phone-shot { display: block; width: 100%; height: auto; }
+          .fw-phone-strip {
+            position: absolute;
+            left: 0;
+            max-width: none;
+            height: auto;
+            animation: fw-swipe 16s ease-in-out infinite;
+          }
+          /* Once the screen has settled on the carousel, swipe it along, hold, and swipe back before the screen scrolls up. */
+          @keyframes fw-swipe {
+            0%, 45% { transform: translateX(0); }
+            53%, 61% { transform: translateX(var(--shift)); }
+            68%, 100% { transform: translateX(0); }
+          }
+          /* Rest on the landing view, glide down to the site's second view, rest, glide back.
+             Every site runs the same clock, so the next one fades in while both are at the top. */
           @keyframes fw-pan {
             0%, 12% { transform: translateY(0); }
-            42%, 70% { transform: translateY(-205cqw); }
+            42%, 70% { transform: translateY(var(--pan)); }
             92%, 100% { transform: translateY(0); }
+          }
+          .fw-phone-wrap:has(:focus-visible) :is(.fw-phone-site, .fw-phone-strip, .fw-island, .fw-island-content) {
+            animation-play-state: paused;
           }
           .fw-phone-status {
             position: absolute;
@@ -2881,7 +3057,8 @@ export default function ForgeWeb() {
             align-items: center;
             justify-content: space-between;
             padding: 1.6cqw 8.5cqw 0 10cqw;
-            background: #FBF7F1;
+            background: var(--screen, #FBF7F1);
+            transition: background-color 0.7s ease;
             color: #111111;
             font: 600 4cqw/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
           }
@@ -2900,7 +3077,7 @@ export default function ForgeWeb() {
             overflow: hidden;
             animation: fw-island 16s cubic-bezier(0.32, 0.72, 0, 1) infinite;
           }
-          /* While the screen rests on the product grid, a "commande envoyée" live activity. */
+          /* While the screen rests on its second view, a live activity ("commande envoyée"…). */
           @keyframes fw-island {
             0%, 50% { width: 30cqw; height: 8.8cqw; border-radius: 4.4cqw; }
             54%, 63% { width: 84cqw; height: 15.5cqw; border-radius: 7.75cqw; }
@@ -3062,7 +3239,8 @@ export default function ForgeWeb() {
             .fw-word-in, .fw-draw-x, .fw-draw-y, .fw-pop { opacity: 1; transform: none; transition: none; }
             .fw-shine::after, .fw-spot::after { display: none; }
             .fw-ping { animation: none; }
-            .fw-phone-site, .fw-island, .fw-island-content { animation: none; }
+            .fw-phone-site, .fw-phone-strip, .fw-island, .fw-island-content { animation: none; }
+            .fw-phone-screen, .fw-phone-status, .fw-phone-site { transition: none; }
             .fw-ping { opacity: 0; }
           }
         `}</style>
