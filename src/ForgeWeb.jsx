@@ -113,11 +113,13 @@ const PROJECT_META = [
 
 /*
  * Client sites shown in turn on the hero iPhone. Each screenshot is the live
- * site at 390px wide, 1.6x. `pan` is how far the screen glides to its second
- * resting view; `screen` is the site's own background, so the status bar
+ * site at 390px wide, 1.6x. `tour` names the keyframes that scroll it (stops
+ * are in the CSS) and `duration` is how long one pass takes; the Dynamic Island
+ * scales with it. `screen` is the site's own background, so the status bar
  * matches. `strip` is an optional horizontal carousel, captured in full and
- * laid over the screenshot at `top`, that swipes by `shift` while the screen
- * rests on it. Copy for each one lives in t.hero.showcases, in the same order.
+ * laid over the screenshot at `top`, that swipes by `shift` (fw-swipe, timed
+ * against fw-tour-aureva). Copy for each one lives in t.hero.showcases, in the
+ * same order.
  */
 const SHOWCASES = [
   {
@@ -126,7 +128,8 @@ const SHOWCASES = [
     src: "/showcase/kanko-creation.webp",
     width: 624,
     height: 2620,
-    pan: "-205cqw",
+    tour: "fw-tour-kanko",
+    duration: "16s",
     screen: "#FBF7F1",
     Icon: WhatsAppGlyph,
   },
@@ -135,8 +138,9 @@ const SHOWCASES = [
     href: "https://aurevatravels.in",
     src: "/showcase/aureva-travels.webp",
     width: 624,
-    height: 2480,
-    pan: "-168cqw",
+    height: 3680,
+    tour: "fw-tour-aureva",
+    duration: "22s",
     screen: "#F6F1E7",
     Icon: Plane,
     // The destination arches, swiped from Armenia to Kazakhstan.
@@ -144,7 +148,7 @@ const SHOWCASES = [
       src: "/showcase/aureva-travels-arches.webp",
       width: 1372,
       height: 418,
-      top: "49.153%",
+      top: "33.125%",
       shift: "-111.72cqw",
     },
   },
@@ -1529,12 +1533,14 @@ function WhatsAppGlyph({ className = "" }) {
 /**
  * Client sites on an iPhone, one after the other. Each screen is a screenshot
  * of the live site, not an iframe, so the hero doesn't load whole extra sites
- * on slow connections. A site pans from its landing view to a second view, and
- * while it rests there the Dynamic Island shows what that site does with a
- * visitor (Kanko hands every order to WhatsApp, Aureva takes trip inquiries).
- * At the end of each pass the next site fades in. Keyboard focus inside the
- * figure pauses it, and the picker lets visitors choose. Under reduced motion it stays
- * still and only the picker changes the site.
+ * on slow connections. Each site plays its own tour once (Kanko: down to the
+ * product grid; Aureva: down to the arches, swipe, down to the destination
+ * list), and while it rests on its last view the Dynamic Island shows what
+ * that site does with a visitor (Kanko hands every order to WhatsApp, Aureva
+ * takes trip inquiries). When a tour ends, back at the top, the next site
+ * fades in and starts its own. Keyboard focus inside the figure pauses it, and
+ * the picker lets visitors choose. Under reduced motion it stays still and
+ * only the picker changes the site.
  * Sizes are in cqw (1% of the phone's width) so the device scales as a unit.
  */
 function PhoneShowcase() {
@@ -1553,19 +1559,22 @@ function PhoneShowcase() {
         <span aria-hidden="true" className="fw-phone-btn is-vol-up" />
         <span aria-hidden="true" className="fw-phone-btn is-vol-down" />
         <span aria-hidden="true" className="fw-phone-btn is-power" />
-        <div key={pass} className="fw-phone-screen" style={{ "--screen": site.screen }}>
+        <div
+          key={pass}
+          className="fw-phone-screen"
+          style={{ "--screen": site.screen, "--dur": site.duration }}
+        >
           {SHOWCASES.map((s, i) => (
             <div
               key={s.src}
               className={`fw-phone-site${i === active ? " is-active" : ""}`}
-              style={{ "--pan": s.pan }}
-              onAnimationIteration={
-                i === 0
-                  ? (e) => {
-                      if (e.animationName === "fw-pan") setActive((a) => (a + 1) % SHOWCASES.length);
-                    }
-                  : undefined
-              }
+              style={{ "--tour": s.tour }}
+              onAnimationEnd={(e) => {
+                // Only the site's own tour, not the strip or island inside it.
+                if (i === active && e.target === e.currentTarget) {
+                  setActive((a) => (a + 1) % SHOWCASES.length);
+                }
+              }}
             >
               <img
                 src={s.src}
@@ -1620,7 +1629,8 @@ function PhoneShowcase() {
               </svg>
             </span>
           </div>
-          <div aria-hidden="true" className="fw-island">
+          {/* Keyed by site so its clock restarts with each tour. */}
+          <div key={active} aria-hidden="true" className="fw-island">
             <span className="fw-island-content">
               <span className="fw-island-icon">
                 <IslandIcon aria-hidden="true" strokeWidth={2.4} className="h-[56%] w-[56%]" />
@@ -3021,29 +3031,40 @@ export default function ForgeWeb() {
             height: auto;
             opacity: 0;
             transition: opacity 0.7s ease;
-            animation: fw-pan 16s ease-in-out infinite;
           }
-          .fw-phone-site.is-active { opacity: 1; }
+          /* Only the site on screen plays its tour, once; its end hands over to the next site. */
+          .fw-phone-site.is-active {
+            opacity: 1;
+            animation: var(--tour) var(--dur) ease-in-out both;
+          }
           .fw-phone-shot { display: block; width: 100%; height: auto; }
           .fw-phone-strip {
             position: absolute;
             left: 0;
             max-width: none;
             height: auto;
-            animation: fw-swipe 16s ease-in-out infinite;
           }
-          /* Once the screen has settled on the carousel, swipe it along, hold, and swipe back before the screen scrolls up. */
-          @keyframes fw-swipe {
-            0%, 45% { transform: translateX(0); }
-            53%, 61% { transform: translateX(var(--shift)); }
-            68%, 100% { transform: translateX(0); }
-          }
-          /* Rest on the landing view, glide down to the site's second view, rest, glide back.
-             Every site runs the same clock, so the next one fades in while both are at the top. */
-          @keyframes fw-pan {
+          .fw-phone-site.is-active .fw-phone-strip { animation: fw-swipe var(--dur) ease-in-out both; }
+          /* Kanko: rest on the landing view, glide down to the product grid, rest, glide back. */
+          @keyframes fw-tour-kanko {
             0%, 12% { transform: translateY(0); }
-            42%, 70% { transform: translateY(var(--pan)); }
+            42%, 70% { transform: translateY(-205cqw); }
             92%, 100% { transform: translateY(0); }
+          }
+          /* Aureva: down to the destination arches, hold while they swipe (fw-swipe),
+             down to the destination list, rest there with the island, glide back up. */
+          @keyframes fw-tour-aureva {
+            0%, 7% { transform: translateY(0); }
+            20%, 33% { transform: translateY(-168cqw); }
+            46%, 76% { transform: translateY(-361.4cqw); }
+            93%, 100% { transform: translateY(0); }
+          }
+          /* Timed against fw-tour-aureva: swipe while the arches are in view, and reset
+             only once the screen has scrolled past them, so the jump is never seen. */
+          @keyframes fw-swipe {
+            0%, 23% { transform: translateX(0); }
+            30%, 60% { transform: translateX(var(--shift)); }
+            60.5%, 100% { transform: translateX(0); }
           }
           .fw-phone-wrap:has(:focus-visible) :is(.fw-phone-site, .fw-phone-strip, .fw-island, .fw-island-content) {
             animation-play-state: paused;
@@ -3075,9 +3096,9 @@ export default function ForgeWeb() {
             background: #000000;
             transform: translateX(-50%);
             overflow: hidden;
-            animation: fw-island 16s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+            animation: fw-island var(--dur, 16s) cubic-bezier(0.32, 0.72, 0, 1) both;
           }
-          /* While the screen rests on its second view, a live activity ("commande envoyée"…). */
+          /* While the screen rests on its last view, a live activity ("commande envoyée"…). Runs on the tour's clock. */
           @keyframes fw-island {
             0%, 50% { width: 30cqw; height: 8.8cqw; border-radius: 4.4cqw; }
             54%, 63% { width: 84cqw; height: 15.5cqw; border-radius: 7.75cqw; }
@@ -3094,7 +3115,7 @@ export default function ForgeWeb() {
             padding: 0 3.4cqw;
             transform: translate(-50%, -50%);
             opacity: 0;
-            animation: fw-island-content 16s ease infinite;
+            animation: fw-island-content var(--dur, 16s) ease both;
           }
           @keyframes fw-island-content {
             0%, 52% { opacity: 0; }
@@ -3239,7 +3260,7 @@ export default function ForgeWeb() {
             .fw-word-in, .fw-draw-x, .fw-draw-y, .fw-pop { opacity: 1; transform: none; transition: none; }
             .fw-shine::after, .fw-spot::after { display: none; }
             .fw-ping { animation: none; }
-            .fw-phone-site, .fw-phone-strip, .fw-island, .fw-island-content { animation: none; }
+            .fw-phone-site.is-active, .fw-phone-site.is-active .fw-phone-strip, .fw-island, .fw-island-content { animation: none; }
             .fw-phone-screen, .fw-phone-status, .fw-phone-site { transition: none; }
             .fw-ping { opacity: 0; }
           }
